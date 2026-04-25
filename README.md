@@ -9,3 +9,6 @@ cd build
 cmake .. 
 make
 ```
+
+---
+**utils/** directory contains help code or generic data structures
