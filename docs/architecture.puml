@@ -1,0 +1,110 @@
+@startuml Megatron_DBMS_Architecture
+
+' Comando clave para permitir mezclar Componentes y Clases
+allowmixing
+
+!theme plain
+skinparam backgroundColor white
+skinparam componentStyle uml2
+
+namespace megatron {
+
+    package "Parser & AST (Fase 3)" {
+        enum StatementType {
+            CREATE
+            INSERT
+            SELECT
+            UNKNOWN
+        }
+
+        abstract class ASTNode {
+            + {abstract} GetType(): StatementType
+        }
+
+        class CreateStatement {
+            + table_name: string
+            + columns: vector<string>
+            + GetType(): StatementType
+        }
+
+        class InsertStatement {
+            + table_name: string
+            + values: vector<string>
+            + GetType(): StatementType
+        }
+
+        class SelectStatement {
+            + table_name: string
+            + select_all: bool
+            + columns: vector<string>
+            + where_clause: Condition
+            + GetType(): StatementType
+        }
+
+        struct Condition {
+            + column: string
+            + value: string
+            + active: bool
+        }
+
+        class Lexer {
+            - tokens_: vector<string>
+            - current_pos_: size_t
+            + Lexer(source: string)
+            + NextToken(): string
+            + HasMore(): bool
+            + Peek(): string
+        }
+
+        class Parser {
+            + {static} Parse(query: string): unique_ptr<ASTNode>
+            - {static} ParseCreate(lexer: Lexer&): unique_ptr<ASTNode>
+            - {static} ParseInsert(lexer: Lexer&): unique_ptr<ASTNode>
+            - {static} ParseSelect(lexer: Lexer&): unique_ptr<ASTNode>
+        }
+
+        ASTNode <|-- CreateStatement
+        ASTNode <|-- InsertStatement
+        ASTNode <|-- SelectStatement
+        SelectStatement *-- Condition
+        Parser ..> Lexer : utiliza
+        Parser ..> ASTNode : genera
+    }
+
+    package "Execution Engine (Fase 2)" <<Future>> {
+        abstract class AbstractExecutor {
+            + Init()
+            + Next(tuple) : bool
+            + Close()
+        }
+        
+        class SeqScanExecutor
+        class FilterExecutor
+        class InsertExecutor
+        
+        AbstractExecutor <|-- SeqScanExecutor
+        AbstractExecutor <|-- FilterExecutor
+        AbstractExecutor <|-- InsertExecutor
+    }
+
+    package "Storage Engine (Fase 1)" {
+        interface IStorageEngine {
+            + {abstract} CreateTable(table_name: string, columns: vector<string>): bool
+            + {abstract} TableExists(table_name: string): bool
+            + {abstract} InsertTuple(table_name: string, tuple: vector<string>): bool
+            + {abstract} FullScan(table_name: string): vector<vector<string>>
+        }
+
+        class MemoryStorageEngine <<Future>> {
+            - tables_ : map<string, vector<Tuple>>
+        }
+        
+        IStorageEngine <|.. MemoryStorageEngine
+    }
+
+    ' Relaciones entre capas
+    Parser ..> "Execution Engine" : "Transforms AST to Plan"
+    "Execution Engine" --> IStorageEngine : "Read/Write Data"
+}
+
+@enduml

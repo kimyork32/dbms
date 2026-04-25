@@ -1,0 +1,3 @@
+C:/Users/Rimsky/Documents/projects/bd2/megatron/build/CMakeFiles/megatron.dir
+C:/Users/Rimsky/Documents/projects/bd2/megatron/build/CMakeFiles/edit_cache.dir
+C:/Users/Rimsky/Documents/projects/bd2/megatron/build/CMakeFiles/rebuild_cache.dir

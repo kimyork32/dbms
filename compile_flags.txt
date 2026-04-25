@@ -1,0 +1,4 @@
+-Iinclude
+-Isrc
+-Wall
+-std=c++17
