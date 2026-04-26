@@ -2,10 +2,11 @@
 #include "BTree.h"
 
 int main() {
-    std::cout << "BTree with grade 3" << std::endl;
+    // for max keys = 3, minimum grade t will be 2 (2t - 1 = 3)
+    std::cout << "BTree with minimum degree t=2" << std::endl;
     
     // max key per node = 3
-    BTree<int, 3> btree;
+    BTree<int, 2> btree; 
     
     int data[] = {10, 20, 5, 6, 12, 30, 7, 17};
     for(int v : data) {
@@ -13,7 +14,7 @@ int main() {
         btree.insert(v);
     }
 
-    std::cout << "\nroute of B-Tree:";
+    std::cout << "\nroute of B-Tree: ";
     btree.print();
 
     return 0;
