@@ -24,6 +24,8 @@ public:
 
     // Operaciones de Datos
     virtual bool InsertTuple(const std::string& table_name, const Tuple& tuple) = 0;
+    virtual bool UpdateTuple(const std::string& table_name, const std::string& set_col, const std::string& set_val, const std::string& where_col, const std::string& where_val) = 0;
+    virtual bool DeleteTuple(const std::string& table_name, const std::string& where_col, const std::string& where_val) = 0;
     
     // El escaneo de tablas en un motor real usaría iteradores (Volcano Model)
     // Aquí definimos una versión simplificada que retorna todas las tuplas.

@@ -1,0 +1,267 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage[a4paper, margin=2.5cm]{geometry}
+\usepackage{courier}
+\usepackage{graphicx}
+\usepackage{pdflscape}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, calc, backgrounds}
+\usepackage{tabularx}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+% Definición de estilos globales para los bloques de memoria
+\tikzset{
+    memblock/.style={
+        draw=black!70,
+        thick,
+        rectangle,
+        minimum width=12cm,
+        align=center,
+        font=\small\sffamily,
+        outer sep=0pt
+    },
+    header/.style={memblock, fill=blue!10, minimum height=1.2cm},
+    slot/.style={memblock, fill=green!10, minimum height=0.6cm},
+    freespace/.style={memblock, fill=gray!5, minimum height=2.5cm, dashed},
+    record/.style={memblock, fill=orange!10, minimum height=0.8cm},
+    garbage/.style={memblock, fill=red!10, minimum height=0.8cm, text=red!70!black},
+    offset/.style={font=\scriptsize\ttfamily\color{black!60}, anchor=east},
+    pointer/.style={->, >=Stealth, thick, color=blue!80!black, rounded corners}
+}
+
+
+% Configuración de listings para C++
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red!70!black},
+    commentstyle=\color{green!60!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    backgroundcolor=\color{gray!5},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=lines,
+    tabsize=4,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    extendedchars=true,
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+             {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {Ü}{{\"U}}1,
+}
+
+\begin{document}
+
+
+% ============ CARÁTUCA ====================================================================
+% ==========================================================================================
+
+\begin{titlepage}
+    \centering
+    {\bfseries\Large UNIVERSIDAD NACIONAL DE SAN AGUSTÍN \par}
+    \vspace{0.5cm}
+    {\bfseries\large FACULTAD DE INGENIERÍA DE PRODUCCIÓN Y SERVICIOS \par}
+    \vspace{0.5cm}
+    {\bfseries\large ESCUELA PROFESIONAL DE CIENCIAS DE LA COMPUTACIÓN \par}
+    \vspace{1.5cm}
+    \includegraphics[width=0.35\textwidth]{logo_unsa.png} 
+    \vspace{1.5cm}
+
+    {\Large \textquotedblleft Laboratorio 04: LRU \textquotedblright \par}
+    \vspace{1cm}
+    
+    \begin{center}
+        {\large \textbf{ESTUDIANTE:} \par}
+        \vspace{0.3cm}
+        MIRAMIRA BELLIDO, Rimsky Augusto \\
+        \vspace{0.5cm}
+        {\textbf{ASIGNATURA:} Base de datos 2 \par}
+        \vspace{0.5cm}
+        {\textbf{DOCENTE:} Yuber Elmer Velazco Paredes \par}
+        \vspace{0.5cm}
+        {\textbf{AÑO ACADÉMICO:} 2026 - A \par}
+        \vspace{0.5cm}
+        {\textbf{GRUPO:} A \par}
+    \end{center}
+    
+    \vspace{1cm}
+    
+    \vfill
+    
+    % Pie de página
+    {\large Arequipa \par}
+    {\large 2026 \par}
+    
+\end{titlepage}
+% ============ INDICE ====================================================================
+% ========================================================================================
+
+% \tableofcontents
+% \newpage
+
+% ============ CONTENIDO ====================================================================
+% ===========================================================================================
+
+\section*{a) Definición de los términos}
+\begin{itemize}
+
+    \item \textbf{Buffer Manager}
+    \begin{itemize}
+        \item Componente del DBMS encargado de administrar la memoria principal utilizada para almacenar páginas de datos.
+        \item Reduce accesos al disco mediante el uso de memoria RAM.
+        \item Gestiona la carga, reemplazo y escritura de páginas.
+    \end{itemize}
+
+    \item \textbf{Buffer Pool}
+    \begin{itemize}
+        \item Área de memoria RAM administrada por el Buffer Manager.
+        \item Contiene páginas copiadas temporalmente desde el disco.
+        \item Está dividido en frames.
+    \end{itemize}
+
+    \item \textbf{Frames}
+    \begin{itemize}
+        \item Espacios individuales dentro del Buffer Pool.
+        \item Cada frame puede almacenar una sola página.
+        \item Funcionan como contenedores de páginas en memoria.
+    \end{itemize}
+
+    \item \textbf{Pages}
+    \begin{itemize}
+        \item Unidad básica de almacenamiento en un DBMS.
+        \item Contienen registros, índices y metadatos.
+        \item Tienen tamaño fijo (por ejemplo 4KB u 8KB).
+    \end{itemize}
+
+    \item \textbf{Dirty Pages}
+    \begin{itemize}
+        \item Páginas modificadas en memoria pero no escritas aún al disco.
+        \item Se marcan como ``dirty'' después de una actualización.
+        \item Permiten mejorar rendimiento reduciendo escrituras inmediatas.
+    \end{itemize}
+
+    \item \textbf{Page Replacement}
+    \begin{itemize}
+        \item Proceso de seleccionar qué página eliminar del buffer cuando está lleno.
+        \item Busca optimizar el uso de memoria y minimizar accesos a disco.
+    \end{itemize}
+
+    \item \textbf{Cache Hit}
+    \begin{itemize}
+        \item Ocurre cuando la página solicitada ya se encuentra en el Buffer Pool.
+        \item Permite acceso rápido sin leer desde disco.
+    \end{itemize}
+
+    \item \textbf{Cache Miss}
+    \begin{itemize}
+        \item Ocurre cuando la página solicitada no está en memoria.
+        \item Requiere cargar la página desde disco.
+    \end{itemize}
+
+    \item \textbf{Algoritmos del Buffer Manager}
+    \begin{itemize}
+        \item \textbf{FIFO (First In First Out):}
+        elimina la primera página que ingresó al buffer.
+
+        \item \textbf{LRU (Least Recently Used):}
+        elimina la página menos utilizada recientemente.
+
+        \item \textbf{MRU (Most Recently Used):}
+        elimina la página usada más recientemente.
+
+        \item \textbf{LFU (Least Frequently Used):}
+        elimina la página menos utilizada históricamente.
+
+        \item \textbf{Clock Algorithm:}
+        aproximación eficiente de LRU utilizando bits de referencia.
+    \end{itemize}
+
+\end{itemize}
+
+\section*{c) Desarrollar un programa en C++ que simule paso a paso el algoritmo LRU.}
+
+\begin{lstlisting}[caption=Implementación del Storage Engine]
+#include <vector>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    cout << "num access, num frames:\n";
+    int n, f; cin >> n >> f;
+    
+    cout << n << " frames input:\n";
+    vector<int> a(n);
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+    }
+
+    vector<int> mem; // acts as a queue of frames, front is LRU, back is MRU
+    int faults = 0;
+
+    for (int i = 0; i < n; i++) {
+        cout << "Access " << i + 1 << ": Page " << a[i] << " -> ";
+        auto it = find(mem.begin(), mem.end(), a[i]);
+        
+        if (it != mem.end()) {
+            cout << "HIT.          ";
+            // move the accessed page to the end
+            int page = *it;
+            mem.erase(it);
+            mem.push_back(page);
+        } else {
+            cout << "PAGE FAULT.   ";
+            // page fault
+            faults++;
+            if (mem.size() < (size_t)f) {
+                mem.push_back(a[i]);
+            } else {
+                // remove the least recently used page (the one at the front)
+                mem.erase(mem.begin());
+                mem.push_back(a[i]);
+            }
+        }
+
+        cout << "Frames: [";
+        for (size_t j = 0; j < mem.size(); j++) {
+            cout << mem[j] << (j == mem.size() - 1 ? "" : ", ");
+        }
+        cout << "]" << endl;
+    }
+
+    cout << "pages fails: " << faults << endl;
+
+    return 0;
+}
+\end{lstlisting}
+
+\subsection*{Captura de pantalla:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{sim.png}
+    \caption{Ejecución de la simulación. Salida es la cantidad de fallos. Número de accesos es 16 y número de frames son 4}
+    \label{fig:placeholder}
+\end{figure}
+
+\end{document}
+

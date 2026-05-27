@@ -11,6 +11,13 @@ include_directories(include)
 set(SOURCES
     src/main.cpp
     src/parser/parser.cpp
+    src/storage/Schema.cpp
+    src/storage/SlottedPage.cpp
+    src/storage/TupleBuilder.cpp
+    src/storage/io.cpp
+    src/storage/mvp_utils.cpp
+    src/storage/disk_storage_engine.cpp
+    src/storage/BufferPoolManager.cpp
 )
 
 # Crear ejecutable

@@ -1,0 +1,261 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+\usepackage{tabularx}
+\geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
+
+\title{\textbf{Base de Datos II}\\ Informe de Implementación: Heap File y Estructura de Páginas}
+\author{}
+\date{\today}
+
+% Configuración de listings para C++
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue}\bfseries,
+    stringstyle=\color{red!70!black},
+    commentstyle=\color{green!60!black},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    backgroundcolor=\color{gray!5},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=lines,
+    tabsize=4,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+}
+
+\begin{document}
+\maketitle
+
+\section{Heap File}
+En el contexto de bases de datos, un \textbf{heap file} (archivo tipo heap) es una forma muy simple de organizar los datos en disco. Básicamente, un heap file es un archivo donde los registros se almacenan sin ningún orden específico. Cada nuevo registro se coloca en cualquier espacio libre disponible (normalmente al final o en huecos que quedaron por eliminaciones).
+
+\subsection*{Características clave de un heap file}
+\begin{itemize}
+    \item \textbf{Sin orden:} no hay ordenamiento por clave ni por ningún atributo.
+    \item \textbf{Inserciones rápidas:} agregar datos es eficiente porque no hay que reordenar nada.
+    \item \textbf{Búsqueda lenta:} para encontrar un registro específico, generalmente hay que hacer un escaneo completo (full scan).
+    \item \textbf{Eliminaciones simples:} al borrar, se deja espacio libre que puede reutilizarse.
+\end{itemize}
+
+\section{Estructura de la Página}
+Un diseño sencillo pero realista dentro de las Bases de Datos para estructurar las páginas es el esquema de \textit{Slotted Page}. La disposición general de la página es la siguiente:
+
+\vspace{0.5cm}
+\begin{center}
+\begin{tikzpicture}[node distance=0cm, outer sep=0pt]
+    \node[draw, minimum width=10cm, minimum height=1cm, fill=blue!10] (header) {Header (Cabecera)};
+    \node[draw, minimum width=10cm, minimum height=1.5cm, fill=green!10, below=of header] (records) {Registros (Crecen hacia abajo $\downarrow$)};
+    \node[draw, minimum width=10cm, minimum height=2cm, fill=gray!10, below=of records] (freespace) {Espacio Libre};
+    \node[draw, minimum width=10cm, minimum height=1.5cm, fill=orange!10, below=of freespace] (slots) {Slot Directory (Crece hacia arriba $\uparrow$)};
+\end{tikzpicture}
+\end{center}
+\vspace{0.5cm}
+
+\subsection*{Componentes de la Página}
+\begin{itemize}
+    \item \textbf{Cabecera (Header):} Incluye campos como la cantidad de registros (\texttt{numSlots}), un puntero indicando dónde empieza el espacio libre (\texttt{freeSpaceOffset}), y el identificador de la página (\texttt{pageID}).
+    \item \textbf{Registros:} Se almacenan de forma compacta desde el inicio del área de datos hacia abajo.
+    \item \textbf{Ranuras (Slot Directory):} Es un arreglo de entradas ubicado al final de la página que crece hacia arriba. Cada slot (ranura) contiene el offset del registro (desplazamiento) y el tamaño del registro.
+\end{itemize}
+
+\section{Funcionalidades a implementar}
+
+A continuación, se describen las operaciones CRUD básicas y su correspondencia con SQL:
+
+\begin{enumerate}
+    \item \textbf{Inserción (Create):}
+    \begin{itemize}
+        \item Verificar si hay espacio suficiente en la página.
+        \item Insertar el registro en el área de datos.
+        \item Agregar una entrada en el slot directory apuntando al registro.
+    \end{itemize}
+    \textit{Relación SQL:} \texttt{INSERT INTO usuarios VALUES (1, 'Ana');}
+    
+    \item \textbf{Lectura (Read):}
+    \begin{itemize}
+        \item Acceder a un registro específico usando su identificador compuesto (\texttt{pageID}, \texttt{slotID}).
+    \end{itemize}
+    \textit{Relación SQL:} \texttt{SELECT * FROM usuarios;}
+    
+    \item \textbf{Eliminación (Delete):}
+    \begin{itemize}
+        \item Marcar el slot correspondiente como inválido o libre.
+        \item Opcionalmente, compactar los datos para reunir el espacio libre fragmentado.
+    \end{itemize}
+    \textit{Relación SQL:} \texttt{DELETE FROM usuarios WHERE id=1;}
+    
+    \item \textbf{Actualización (Update):}
+    \begin{itemize}
+        \item Si el nuevo registro cabe en el mismo espacio $\rightarrow$ sobrescribir.
+        \item Si no cabe $\rightarrow$ marcar el actual como eliminado e insertar el nuevo al final del área de registros.
+    \end{itemize}
+    \textit{Relación SQL:} \texttt{UPDATE usuarios SET nombre='Ana M.';}
+\end{enumerate}
+
+\section{Desarrollo}
+
+\subsection{Implementación del Sistema de Almacenamiento (C++)}
+
+En base a los archivos trabajados en el directorio local, se ha definido una estructura que gestiona el acceso a disco a través de flujos binarios y system calls (\texttt{pread}, \texttt{pwrite}), organizando los datos en páginas de 4KB.
+
+La estructura del \texttt{PageHeader} y de la clase \texttt{SlottedPage} se han implementado como se muestra a continuación (referencia de \texttt{write.cpp} y \texttt{read.cpp}):
+
+\begin{lstlisting}[caption={Definición de Cabecera y Página Slotted}]
+#define SIZE_PAGE 4096
+
+#pragma pack(push, 1)
+struct PageHeader {
+    uint32_t page_id;
+    uint16_t num_slots;
+    uint16_t free_lower; // Apunta al final de los registros
+    uint16_t free_upper; // Apunta al inicio del Slot Directory
+    uint8_t flags[6];
+};
+#pragma pack(pop)
+
+class SlottedPage {
+public: 
+    char data[SIZE_PAGE];
+    
+    PageHeader* get_header() {
+        return reinterpret_cast<PageHeader*>(data);
+    }
+};
+\end{lstlisting}
+
+Por otro lado, la definición de esquemas (Columnas y metadatos) fue abordada en \texttt{Schema.hpp}, soportando tanto datos fijos (\texttt{INTEGER}, \texttt{SMALLINT}) como dinámicos (\texttt{VARCHAR}):
+
+\begin{lstlisting}[caption={Definición de Esquema}]
+enum class TypeId { INTEGER, SMALLINT, VARCHAR };
+
+struct Column {
+    std::string name;
+    TypeId type;
+    uint16_t size;
+    uint16_t fixed_offset;
+    bool is_variable;
+    uint16_t var_index;
+};
+
+class Schema {
+public:
+    std::vector<Column> columns;
+    uint16_t tuple_header_size = 1; 
+    uint16_t total_fixed_size = 0;  
+    uint16_t num_variable_cols = 0; 
+
+    void add_column(const std::string& name, TypeId type) {
+        // ... Logica de asignacion de offsets relativos ...
+    }
+};
+\end{lstlisting}
+
+\subsection{Modelado del Flujo Operativo (CRUD)}
+
+Para ilustrar de forma esquemática lo que ocurre en la página después de ejecutar las distintas operaciones, analizaremos una secuencia transaccional sobre una página vacía.
+
+\subsubsection*{1. Estado Inicial (Página Vacía)}
+El \texttt{free\_lower} (fin de registros) apunta justo después del Header. El \texttt{free\_upper} (inicio de Slots) apunta al final exacto de la página de 4KB. \texttt{numSlots = 0}.
+
+\begin{center}
+\begin{tabular}{|p{10cm}|}
+\hline
+\textbf{Header:} numSlots=0, free\_lower=16, free\_upper=4096 \\ \hline
+\textit{(Espacio Libre - 4080 bytes)} \\
+\vspace{1cm} \\ \hline
+\textbf{Slot Directory:} (Vacío) \\ \hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{2. Inserción de R1 (Create)}
+Insertamos un registro $R1$ de 30 bytes.
+\begin{itemize}
+    \item $R1$ se coloca en \texttt{offset = 16}.
+    \item Se crea \texttt{Slot 0} apuntando al offset 16 y longitud 30.
+    \item \texttt{free\_lower = 46}, \texttt{free\_upper = 4092} (Slot mide 4 bytes). \texttt{numSlots = 1}.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|p{10cm}|}
+\hline
+\textbf{Header:} numSlots=1, free\_lower=46, free\_upper=4092 \\ \hline
+\textbf{R1:} (Datos: 30 bytes) [offset: 16] \\ \hline
+\textit{(Espacio Libre - 4046 bytes)} \\ \hline
+\textbf{Slot 0:} offset=16, len=30 \\ \hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{3. Inserción de R2 (Create)}
+Insertamos un registro $R2$ de 40 bytes.
+\begin{itemize}
+    \item $R2$ se coloca en \texttt{offset = 46}.
+    \item Se crea \texttt{Slot 1} apuntando a 46. \texttt{numSlots = 2}.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|p{10cm}|}
+\hline
+\textbf{Header:} numSlots=2, free\_lower=86, free\_upper=4088 \\ \hline
+\textbf{R1:} (30 bytes) [offset: 16] \\ \hline
+\textbf{R2:} (40 bytes) [offset: 46] \\ \hline
+\textit{(Espacio Libre - 4002 bytes)} \\ \hline
+\textbf{Slot 1:} offset=46, len=40 ~|~ \textbf{Slot 0:} offset=16, len=30 \\ \hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{4. Eliminación Lógica de R1 (Delete)}
+Eliminamos $R1$. No borramos los datos físicos todavía, simplemente anulamos el Slot.
+\begin{itemize}
+    \item \texttt{Slot 0} se marca como inválido (ej. offset = -1).
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|p{10cm}|}
+\hline
+\textbf{Header:} numSlots=2, free\_lower=86, free\_upper=4088 \\ \hline
+\textcolor{gray}{\textbf{R1 (basura):} (30 bytes) [offset: 16]} \\ \hline
+\textbf{R2:} (40 bytes) [offset: 46] \\ \hline
+\textit{(Espacio Libre - 4002 bytes)} \\ \hline
+\textbf{Slot 1:} offset=46, len=40 ~|~ \textcolor{red}{\textbf{Slot 0:} [-INVÁLIDO-]} \\ \hline
+\end{tabular}
+\end{center}
+
+\subsubsection*{5. Actualización de R2 con mayor tamaño (Update)}
+Actualizamos $R2$ a un tamaño de 50 bytes. Como 50 > 40, no cabe en el lugar anterior.
+\begin{itemize}
+    \item El espacio antiguo de $R2$ queda como basura.
+    \item Escribimos el nuevo $R2'$ en el \texttt{free\_lower} (86).
+    \item Actualizamos \texttt{Slot 1} para apuntar al nuevo offset 86 y longitud 50.
+\end{itemize}
+
+\begin{center}
+\begin{tabular}{|p{10cm}|}
+\hline
+\textbf{Header:} numSlots=2, free\_lower=136, free\_upper=4088 \\ \hline
+\textcolor{gray}{\textbf{R1 (basura):} (30 bytes)} \\ \hline
+\textcolor{gray}{\textbf{R2 (basura):} (40 bytes)} \\ \hline
+\textbf{R2' (nuevo):} (50 bytes) [offset: 86] \\ \hline
+\textit{(Espacio Libre - 3952 bytes)} \\ \hline
+\textbf{Slot 1:} offset=86, len=50 ~|~ \textcolor{red}{\textbf{Slot 0:} [-INVÁLIDO-]} \\ \hline
+\end{tabular}
+\end{center}
+
+\textit{Nota: Eventualmente, el sistema deberá realizar un proceso de compactación (Vacuum) donde moverá los registros activos (\texttt{R2'}) hacia arriba, recuperando los 70 bytes de fragmentación generados por \texttt{R1} y \texttt{R2} antiguos, reajustando \texttt{free\_lower} a 66 y actualizando el offset de \texttt{Slot 1}.}
+
+\end{document}

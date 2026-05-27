@@ -34,6 +34,8 @@ private:
     static std::unique_ptr<ASTNode> ParseCreate(Lexer& lexer);
     static std::unique_ptr<ASTNode> ParseInsert(Lexer& lexer);
     static std::unique_ptr<ASTNode> ParseSelect(Lexer& lexer);
+    static std::unique_ptr<ASTNode> ParseUpdate(Lexer& lexer);
+    static std::unique_ptr<ASTNode> ParseDelete(Lexer& lexer);
 };
 
 } // namespace megatron

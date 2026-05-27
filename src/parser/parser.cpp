@@ -55,6 +55,10 @@ std::unique_ptr<ASTNode> Parser::Parse(const std::string& query) {
         return ParseInsert(lexer);
     } else if (first_token == "SELECT") {
         return ParseSelect(lexer);
+    } else if (first_token == "UPDATE") {
+        return ParseUpdate(lexer);
+    } else if (first_token == "DELETE") {
+        return ParseDelete(lexer);
     } else {
         throw std::runtime_error("Unknown command: " + first_token);
     }
@@ -141,6 +145,69 @@ std::unique_ptr<ASTNode> Parser::ParseSelect(Lexer& lexer) {
             
             // Limpieza simple de comillas si existen (ej: 'Alice')
             if (stmt->where_clause.value.front() == '\'' && stmt->where_clause.value.back() == '\'') {
+                stmt->where_clause.value = stmt->where_clause.value.substr(1, stmt->where_clause.value.size() - 2);
+            }
+        }
+    }
+
+    return stmt;
+}
+
+std::unique_ptr<ASTNode> Parser::ParseUpdate(Lexer& lexer) {
+    auto stmt = std::make_unique<UpdateStatement>();
+
+    stmt->table_name = lexer.NextToken();
+
+    std::string set_token = lexer.NextToken();
+    std::transform(set_token.begin(), set_token.end(), set_token.begin(), ::toupper);
+    if (set_token != "SET") throw std::runtime_error("Expected SET after table name in UPDATE");
+
+    stmt->set_column = lexer.NextToken();
+
+    if (lexer.NextToken() != "=") throw std::runtime_error("Expected = in SET clause");
+
+    stmt->set_value = lexer.NextToken();
+    if (!stmt->set_value.empty() && stmt->set_value.front() == '\'' && stmt->set_value.back() == '\'') {
+        stmt->set_value = stmt->set_value.substr(1, stmt->set_value.size() - 2);
+    }
+
+    if (lexer.HasMore()) {
+        std::string where_token = lexer.NextToken();
+        std::transform(where_token.begin(), where_token.end(), where_token.begin(), ::toupper);
+        if (where_token == "WHERE") {
+            stmt->where_clause.active = true;
+            stmt->where_clause.column = lexer.NextToken();
+            if (lexer.NextToken() != "=") throw std::runtime_error("Expected = in WHERE clause");
+            stmt->where_clause.value = lexer.NextToken();
+            
+            if (!stmt->where_clause.value.empty() && stmt->where_clause.value.front() == '\'' && stmt->where_clause.value.back() == '\'') {
+                stmt->where_clause.value = stmt->where_clause.value.substr(1, stmt->where_clause.value.size() - 2);
+            }
+        }
+    }
+
+    return stmt;
+}
+
+std::unique_ptr<ASTNode> Parser::ParseDelete(Lexer& lexer) {
+    auto stmt = std::make_unique<DeleteStatement>();
+
+    std::string from_token = lexer.NextToken();
+    std::transform(from_token.begin(), from_token.end(), from_token.begin(), ::toupper);
+    if (from_token != "FROM") throw std::runtime_error("Expected FROM after DELETE");
+
+    stmt->table_name = lexer.NextToken();
+
+    if (lexer.HasMore()) {
+        std::string where_token = lexer.NextToken();
+        std::transform(where_token.begin(), where_token.end(), where_token.begin(), ::toupper);
+        if (where_token == "WHERE") {
+            stmt->where_clause.active = true;
+            stmt->where_clause.column = lexer.NextToken();
+            if (lexer.NextToken() != "=") throw std::runtime_error("Expected = in WHERE clause");
+            stmt->where_clause.value = lexer.NextToken();
+            
+            if (!stmt->where_clause.value.empty() && stmt->where_clause.value.front() == '\'' && stmt->where_clause.value.back() == '\'') {
                 stmt->where_clause.value = stmt->where_clause.value.substr(1, stmt->where_clause.value.size() - 2);
             }
         }

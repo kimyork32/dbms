@@ -9,6 +9,8 @@ enum class StatementType {
     CREATE,
     INSERT,
     SELECT,
+    UPDATE,
+    DELETE,
     UNKNOWN
 };
 
@@ -63,6 +65,30 @@ public:
     Condition where_clause;
 
     StatementType GetType() const override { return StatementType::SELECT; }
+};
+
+/**
+ * @brief Representa: UPDATE table_name SET col = val [WHERE col = val]
+ */
+class UpdateStatement : public ASTNode {
+public:
+    std::string table_name;
+    std::string set_column;
+    std::string set_value;
+    Condition where_clause;
+
+    StatementType GetType() const override { return StatementType::UPDATE; }
+};
+
+/**
+ * @brief Representa: DELETE FROM table_name [WHERE col = val]
+ */
+class DeleteStatement : public ASTNode {
+public:
+    std::string table_name;
+    Condition where_clause;
+
+    StatementType GetType() const override { return StatementType::DELETE; }
 };
 
 } // namespace megatron
