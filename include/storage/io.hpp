@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SlottedPage.hpp"
+#include "slotted_page.hpp"
 
 namespace megatron {
 

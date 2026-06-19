@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "storage/SlottedPage.hpp"
+#include "storage/slotted_page.hpp"
 
 namespace megatron {
 

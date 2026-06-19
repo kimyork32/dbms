@@ -4,7 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <cstdint>
-#include "storage/SlottedPage.hpp"
+#include "storage/slotted_page.hpp"
 
 namespace megatron {
 

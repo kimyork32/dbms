@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Schema.hpp"
+#include "schema.hpp"
 
 namespace megatron {
 

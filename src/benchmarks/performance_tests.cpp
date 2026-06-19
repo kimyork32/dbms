@@ -1,5 +1,5 @@
-#include "benchmarks/PerformanceTests.hpp"
-#include "execution/QueryExecutor.hpp"
+#include "benchmarks/performance_tests.hpp"
+#include "execution/query_executor.hpp"
 #include "storage/disk_storage_engine.hpp"
 #include <iostream>
 #include <string>

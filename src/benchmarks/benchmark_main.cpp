@@ -1,4 +1,4 @@
-#include "benchmarks/PerformanceTests.hpp"
+#include "benchmarks/performance_tests.hpp"
 #include "storage/disk_storage_engine.hpp"
 #include <iostream>
 

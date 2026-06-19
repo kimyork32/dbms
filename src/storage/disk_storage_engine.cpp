@@ -2,10 +2,10 @@
 #include <stdexcept>
 #include <cstring>
 #include <cstdio>
-#include "storage/SlottedPage.hpp"
-#include "storage/TupleBuilder.hpp"
-#include "storage/BPlusTree.hpp"
-#include "storage/RecordId.hpp"
+#include "storage/slotted_page.hpp"
+#include "storage/tuple_builder.hpp"
+#include "storage/b_plus_tree.hpp"
+#include "storage/record_id.hpp"
 
 namespace megatron {
 

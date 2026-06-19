@@ -9,15 +9,15 @@ include_directories(include)
 
 set(CORE_SOURCES
     src/parser/parser.cpp
-    src/storage/Schema.cpp
-    src/storage/SlottedPage.cpp
-    src/storage/TupleBuilder.cpp
+    src/storage/schema.cpp
+    src/storage/slotted_page.cpp
+    src/storage/tuple_builder.cpp
     src/storage/io.cpp
     src/storage/mvp_utils.cpp
     src/storage/disk_storage_engine.cpp
-    src/storage/BufferPoolManager.cpp
-    src/execution/QueryExecutor.cpp
-    src/benchmarks/PerformanceTests.cpp
+    src/storage/buffer_pool_manager.cpp
+    src/execution/query_executor.cpp
+    src/benchmarks/performance_tests.cpp
 )
 add_library(megatron_core STATIC ${CORE_SOURCES})
 

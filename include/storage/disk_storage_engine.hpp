@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 #include "storage/storage_engine.hpp"
-#include "storage/Schema.hpp"
-#include "storage/BufferPoolManager.hpp"
+#include "storage/schema.hpp"
+#include "storage/buffer_pool_manager.hpp"
 
 namespace megatron {
 

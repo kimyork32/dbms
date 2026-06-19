@@ -1,4 +1,4 @@
-#include "execution/QueryExecutor.hpp"
+#include "execution/query_executor.hpp"
 #include "parser/parser.hpp"
 #include "storage/disk_storage_engine.hpp"
 #include <iostream>

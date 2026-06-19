@@ -1,6 +1,6 @@
 #include <cstring>
 
-#include "storage/TupleBuilder.hpp"
+#include "storage/tuple_builder.hpp"
 
 namespace megatron {
 

@@ -4,7 +4,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "storage/SlottedPage.hpp"
+#include "storage/slotted_page.hpp"
 #include "storage/io.hpp"
 
 namespace megatron {

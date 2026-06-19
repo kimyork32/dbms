@@ -1,6 +1,6 @@
 #include <iostream>
 #include <string>
-#include "execution/QueryExecutor.hpp"
+#include "execution/query_executor.hpp"
 #include "storage/disk_storage_engine.hpp"
 
 using namespace megatron;
