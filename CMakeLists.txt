@@ -18,6 +18,8 @@ set(SOURCES
     src/storage/mvp_utils.cpp
     src/storage/disk_storage_engine.cpp
     src/storage/BufferPoolManager.cpp
+    src/execution/QueryExecutor.cpp
+    src/benchmarks/PerformanceTests.cpp
 )
 
 # Crear ejecutable
