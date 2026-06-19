@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace megatron {
 
@@ -15,7 +14,7 @@ enum class StatementType {
 };
 
 /**
- * @brief Nodo base del Árbol de Sintaxis Abstracta (AST)
+ * @brief base node of the abstract syntax tree (ast)
  */
 class ASTNode {
 public:
@@ -24,7 +23,7 @@ public:
 };
 
 /**
- * @brief Representa: CREATE TABLE table_name (col1, col2, ...)
+ * @brief represents: CREATE TABLE table_name (col1, col2, ...)
  */
 class CreateStatement : public ASTNode {
 public:
@@ -35,7 +34,7 @@ public:
 };
 
 /**
- * @brief Representa: INSERT INTO table_name VALUES (val1, val2, ...)
+ * @brief represents: INSERT INTO table_name VALUES (val1, val2, ...)
  */
 class InsertStatement : public ASTNode {
 public:
@@ -46,7 +45,7 @@ public:
 };
 
 /**
- * @brief Estructura simple para representar una condición WHERE (ej: id = 1)
+ * @brief simple structure to represent a where condition (e.g., id = 1)
  */
 struct Condition {
     std::string column;
@@ -55,7 +54,7 @@ struct Condition {
 };
 
 /**
- * @brief Representa: SELECT * FROM table_name [WHERE col = val]
+ * @brief represents: SELECT * FROM table_name [WHERE col = val]
  */
 class SelectStatement : public ASTNode {
 public:
@@ -68,7 +67,7 @@ public:
 };
 
 /**
- * @brief Representa: UPDATE table_name SET col = val [WHERE col = val]
+ * @brief represents: UPDATE table_name SET col = val [WHERE col = val]
  */
 class UpdateStatement : public ASTNode {
 public:
@@ -81,7 +80,7 @@ public:
 };
 
 /**
- * @brief Representa: DELETE FROM table_name [WHERE col = val]
+ * @brief represents: DELETE FROM table_name [WHERE col = val]
  */
 class DeleteStatement : public ASTNode {
 public:

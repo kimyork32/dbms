@@ -1,14 +1,13 @@
 #include "parser/parser.hpp"
 #include <sstream>
 #include <algorithm>
-#include <iostream>
+#include <stdexcept>
 
 namespace megatron {
 
 // ================= Lexer Implementation =================
 
 Lexer::Lexer(std::string source) {
-    // Normalización simple para manejar puntuación.
     std::string normalized;
     for (char c : source) {
         if (c == '(' || c == ')' || c == ',' || c == ';' || c == '=') {
@@ -21,7 +20,6 @@ Lexer::Lexer(std::string source) {
     std::stringstream ss(normalized);
     std::string token;
     while (ss >> token) {
-        // Convertir a mayúsculas para palabras clave (opcional para simplicidad).
         tokens_.push_back(token);
     }
 }
@@ -41,6 +39,14 @@ std::string Lexer::Peek() const {
 }
 
 // ================= Parser Implementation =================
+
+void Parser::ExpectKeyword(Lexer& lexer, const std::string& expected_keyword) {
+    std::string token = lexer.NextToken();
+    std::transform(token.begin(), token.end(), token.begin(), ::toupper);
+    if (token != expected_keyword) {
+        throw std::runtime_error("Expected " + expected_keyword + " but got " + token);
+    }
+}
 
 std::unique_ptr<ASTNode> Parser::Parse(const std::string& query) {
     Lexer lexer(query);
@@ -67,14 +73,9 @@ std::unique_ptr<ASTNode> Parser::Parse(const std::string& query) {
 std::unique_ptr<ASTNode> Parser::ParseCreate(Lexer& lexer) {
     auto stmt = std::make_unique<CreateStatement>();
     
-    // Esperar "TABLE"
-    std::string table_token = lexer.NextToken();
-    std::transform(table_token.begin(), table_token.end(), table_token.begin(), ::toupper);
-    if (table_token != "TABLE") throw std::runtime_error("Expected TABLE after CREATE");
-
+    ExpectKeyword(lexer, "TABLE");
     stmt->table_name = lexer.NextToken();
 
-    // Esperar "("
     if (lexer.NextToken() != "(") throw std::runtime_error("Expected ( after table name");
 
     while (lexer.HasMore()) {
@@ -91,19 +92,11 @@ std::unique_ptr<ASTNode> Parser::ParseCreate(Lexer& lexer) {
 std::unique_ptr<ASTNode> Parser::ParseInsert(Lexer& lexer) {
     auto stmt = std::make_unique<InsertStatement>();
     
-    // Esperar "INTO"
-    std::string into_token = lexer.NextToken();
-    std::transform(into_token.begin(), into_token.end(), into_token.begin(), ::toupper);
-    if (into_token != "INTO") throw std::runtime_error("Expected INTO after INSERT");
-
+    ExpectKeyword(lexer, "INTO");
     stmt->table_name = lexer.NextToken();
 
-    // Esperar "VALUES"
-    std::string values_token = lexer.NextToken();
-    std::transform(values_token.begin(), values_token.end(), values_token.begin(), ::toupper);
-    if (values_token != "VALUES") throw std::runtime_error("Expected VALUES after table name");
+    ExpectKeyword(lexer, "VALUES");
 
-    // Esperar "("
     if (lexer.NextToken() != "(") throw std::runtime_error("Expected ( after VALUES");
 
     while (lexer.HasMore()) {
@@ -126,14 +119,9 @@ std::unique_ptr<ASTNode> Parser::ParseSelect(Lexer& lexer) {
         // Parsear lista de columnas... (omitido para brevedad en este ejemplo)
     }
 
-    // Esperar "FROM"
-    std::string from_token = lexer.NextToken();
-    std::transform(from_token.begin(), from_token.end(), from_token.begin(), ::toupper);
-    if (from_token != "FROM") throw std::runtime_error("Expected FROM after SELECT list");
-
+    ExpectKeyword(lexer, "FROM");
     stmt->table_name = lexer.NextToken();
 
-    // Opcional: WHERE
     if (lexer.HasMore()) {
         std::string where_token = lexer.NextToken();
         std::transform(where_token.begin(), where_token.end(), where_token.begin(), ::toupper);
@@ -143,8 +131,7 @@ std::unique_ptr<ASTNode> Parser::ParseSelect(Lexer& lexer) {
             if (lexer.NextToken() != "=") throw std::runtime_error("Expected = in WHERE clause");
             stmt->where_clause.value = lexer.NextToken();
             
-            // Limpieza simple de comillas si existen (ej: 'Alice')
-            if (stmt->where_clause.value.front() == '\'' && stmt->where_clause.value.back() == '\'') {
+            if (!stmt->where_clause.value.empty() && stmt->where_clause.value.front() == '\'' && stmt->where_clause.value.back() == '\'') {
                 stmt->where_clause.value = stmt->where_clause.value.substr(1, stmt->where_clause.value.size() - 2);
             }
         }
@@ -158,10 +145,7 @@ std::unique_ptr<ASTNode> Parser::ParseUpdate(Lexer& lexer) {
 
     stmt->table_name = lexer.NextToken();
 
-    std::string set_token = lexer.NextToken();
-    std::transform(set_token.begin(), set_token.end(), set_token.begin(), ::toupper);
-    if (set_token != "SET") throw std::runtime_error("Expected SET after table name in UPDATE");
-
+    ExpectKeyword(lexer, "SET");
     stmt->set_column = lexer.NextToken();
 
     if (lexer.NextToken() != "=") throw std::runtime_error("Expected = in SET clause");
@@ -192,10 +176,7 @@ std::unique_ptr<ASTNode> Parser::ParseUpdate(Lexer& lexer) {
 std::unique_ptr<ASTNode> Parser::ParseDelete(Lexer& lexer) {
     auto stmt = std::make_unique<DeleteStatement>();
 
-    std::string from_token = lexer.NextToken();
-    std::transform(from_token.begin(), from_token.end(), from_token.begin(), ::toupper);
-    if (from_token != "FROM") throw std::runtime_error("Expected FROM after DELETE");
-
+    ExpectKeyword(lexer, "FROM");
     stmt->table_name = lexer.NextToken();
 
     if (lexer.HasMore()) {
