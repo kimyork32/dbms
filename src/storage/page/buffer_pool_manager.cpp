@@ -133,7 +133,7 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
         page_table_.erase({victim.table_name, victim.page_id});
     }
 
-    // Determine new page id
+    // determine new page id
     uint32_t new_page_id = 0;
     {
         std::lock_guard<std::mutex> meta_lock(table_meta_latch_);
@@ -151,7 +151,7 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
     
     *page_id = new_page_id;
 
-    // Initialize formatting
+    // initialize formatting
     victim.page.Init(new_page_id);
     
     victim.table_name = table_name;

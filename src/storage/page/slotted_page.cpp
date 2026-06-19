@@ -25,7 +25,7 @@ bool SlottedPage::InsertTuple(const char* tuple_data, uint16_t size) {
     PageHeader* header = GetHeader();
     
     // check if there is space (tuple size + 4 bytes of the slot)
-    if (header->free_upper - header->free_lower < size + sizeof(Slot)) {
+    if (header->free_upper - header->free_lower < size + uint16_t(sizeof(Slot))) {
         return false; // insufficient memory
     }
 

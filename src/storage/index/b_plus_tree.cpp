@@ -315,7 +315,7 @@ void BPlusTreeDisk::BorrowFromRight(BPlusInternalNode<int>* parent, int c_idx, c
     r_hdr->num_keys--;
 }
 
-void BPlusTreeDisk::MergeNodes(BPlusInternalNode<int>* parent, int p_idx, char* l_buf, NodeHeader* l_hdr, char* r_buf, NodeHeader* r_hdr) {
+void BPlusTreeDisk::MergeNodes(BPlusInternalNode<int>* parent, int p_idx, char* l_buf, NodeHeader* l_hdr, char* r_buf, NodeHeader* /*r_hdr*/) {
     if (l_hdr->is_leaf) {
         auto* left = reinterpret_cast<BPlusLeafNode<int, int64_t>*>(l_buf);
         auto* right = reinterpret_cast<BPlusLeafNode<int, int64_t>*>(r_buf);
