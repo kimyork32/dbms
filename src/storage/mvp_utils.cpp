@@ -3,7 +3,9 @@
 
 #include "storage/utils.hpp"
 
-void print_tuple(const Schema* schema, const char* tuple_data) {
+namespace megatron {
+
+void PrintTuple(const Schema* schema, const char* tuple_data) {
     std::cout << "{ ";
     for (size_t i = 0; i < schema->columns.size(); ++i) {
         const auto& col = schema->columns[i];
@@ -18,7 +20,7 @@ void print_tuple(const Schema* schema, const char* tuple_data) {
             std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int16_t));
             std::cout << val;
         } else if (col.is_variable) {
-            uint16_t dir_pos = schema->get_variable_directory_offset() + (col.var_index * 4);
+            uint16_t dir_pos = schema->GetVariableDirectoryOffset() + (col.var_index * 4);
             uint16_t offset;
             uint16_t length;
             std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
@@ -32,3 +34,5 @@ void print_tuple(const Schema* schema, const char* tuple_data) {
     }
     std::cout << " }\n";
 }
+
+} // namespace megatron

@@ -1,6 +1,8 @@
 #include "storage/Schema.hpp"
 
-void Schema::add_column(const std::string& name, TypeId type) {
+namespace megatron {
+
+void Schema::AddColumn(const std::string& name, TypeId type) {
     Column col;
     col.name = name;
     col.type = type;
@@ -34,7 +36,8 @@ void Schema::add_column(const std::string& name, TypeId type) {
     columns.push_back(col);
 }
 
-uint16_t Schema::get_variable_directory_offset() const {
+uint16_t Schema::GetVariableDirectoryOffset() const {
     return tuple_header_size + total_fixed_size;
 }
 
+} // namespace megatron

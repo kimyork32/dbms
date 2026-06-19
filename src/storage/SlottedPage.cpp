@@ -1,17 +1,19 @@
 #include <cstring>
 
 #include "storage/SlottedPage.hpp"
- 
-PageHeader* SlottedPage::get_header() {
+
+namespace megatron {
+
+PageHeader* SlottedPage::GetHeader() {
     return reinterpret_cast<PageHeader*>(data);
 }
 
-Slot* SlottedPage::get_slot(uint16_t slot_index) {
+Slot* SlottedPage::GetSlot(uint16_t slot_index) {
     return reinterpret_cast<Slot*>(data + sizeof(PageHeader) + (slot_index * sizeof(Slot)));
 }
 
-void SlottedPage::init(uint32_t page_id) {
-    PageHeader* header = get_header();
+void SlottedPage::Init(uint32_t page_id) {
+    PageHeader* header = GetHeader();
     header->page_id = page_id;
     header->num_slots = 0;
     header->free_lower = sizeof(PageHeader);
@@ -19,8 +21,8 @@ void SlottedPage::init(uint32_t page_id) {
     for(int i = 0; i < 6; ++i) header->flags[i] = 0;
 }
 
-bool SlottedPage::insert_tuple(const char* tuple_data, uint16_t size) {
-    PageHeader* header = get_header();
+bool SlottedPage::InsertTuple(const char* tuple_data, uint16_t size) {
+    PageHeader* header = GetHeader();
     
     // check if there is space (tuple size + 4 bytes of the slot)
     if (header->free_upper - header->free_lower < size + sizeof(Slot)) {
@@ -34,7 +36,7 @@ bool SlottedPage::insert_tuple(const char* tuple_data, uint16_t size) {
     std::memcpy(data + new_offset, tuple_data, size);
 
     // create the entry in the slot directory
-    Slot* new_slot = get_slot(header->num_slots);
+    Slot* new_slot = GetSlot(header->num_slots);
     new_slot->offset = new_offset;
     new_slot->length = size;
 
@@ -46,25 +48,25 @@ bool SlottedPage::insert_tuple(const char* tuple_data, uint16_t size) {
     return true;
 }
 
-const char* SlottedPage::read_tuple(uint16_t slot_id, uint16_t& out_size) {
-    PageHeader* header = get_header();
+const char* SlottedPage::ReadTuple(uint16_t slot_id, uint16_t& out_size) {
+    PageHeader* header = GetHeader();
     if (slot_id >= header->num_slots) return nullptr;
 
-    Slot* slot = get_slot(slot_id);
+    Slot* slot = GetSlot(slot_id);
     if (slot->length == 0) return nullptr; // tuple already deleted
 
     out_size = slot->length;
     return data + slot->offset;
 }
 
-void SlottedPage::compact() {
+void SlottedPage::Compact() {
     char temp_data[4096];
     uint16_t current_upper = 4096;
-    PageHeader* header = get_header();
+    PageHeader* header = GetHeader();
 
     // move all live tuples to the bottom of the temporary buffer
     for (uint16_t i = 0; i < header->num_slots; ++i) {
-        Slot* slot = get_slot(i);
+        Slot* slot = GetSlot(i);
         if (slot->length > 0) { // if the tuple is NOT deleted
             current_upper -= slot->length;
             std::memcpy(temp_data + current_upper, data + slot->offset, slot->length);
@@ -84,25 +86,25 @@ void SlottedPage::compact() {
     header->free_upper = current_upper;
 }
 
-void SlottedPage::delete_tuple(uint16_t slot_id) {
-    PageHeader* header = get_header();
+void SlottedPage::DeleteTuple(uint16_t slot_id) {
+    PageHeader* header = GetHeader();
     if (slot_id >= header->num_slots) return;
 
-    Slot* slot = get_slot(slot_id);
+    Slot* slot = GetSlot(slot_id);
     if (slot->length == 0) return; // already deleted
     
     // logical marking
     slot->length = 0; 
     
     // compact fragmented space
-    compact();
+    Compact();
 }
 
-bool SlottedPage::update_tuple(uint16_t slot_id, const char* new_data, uint16_t new_size) {
-    PageHeader* header = get_header();
+bool SlottedPage::UpdateTuple(uint16_t slot_id, const char* new_data, uint16_t new_size) {
+    PageHeader* header = GetHeader();
     if (slot_id >= header->num_slots) return false;
 
-    Slot* slot = get_slot(slot_id);
+    Slot* slot = GetSlot(slot_id);
     if (slot->length == 0) return false; // cannot update a deleted tuple
 
     // case 1: in-place update (the new tuple fits in the current space)
@@ -115,7 +117,7 @@ bool SlottedPage::update_tuple(uint16_t slot_id, const char* new_data, uint16_t 
     // case 2: out-of-place update (the new tuple is larger)
     // check if there is space, if not, force compaction
     if (header->free_upper - header->free_lower < new_size) {
-        compact();
+        Compact();
         // if there is still no space after compacting, fail
         if (header->free_upper - header->free_lower < new_size) {
             return false; 
@@ -137,3 +139,5 @@ bool SlottedPage::update_tuple(uint16_t slot_id, const char* new_data, uint16_t 
     
     return true; 
 }
+
+} // namespace megatron

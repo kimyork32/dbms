@@ -2,7 +2,9 @@
 
 #include <cstdint>
 
-#define PAGE_SIZE 4096
+namespace megatron {
+
+constexpr size_t PAGE_SIZE = 4096;
 
 #pragma pack(push, 1)
 /**
@@ -24,3 +26,5 @@ struct PageHeader {
     uint8_t  flags[6];
 };
 #pragma pack(pop)
+
+} // namespace megatron

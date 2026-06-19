@@ -17,9 +17,9 @@ bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::ve
     Schema schema;
     for (size_t i = 0; i < columns.size(); ++i) {
         if (i == 0) { // first column is assumed to be PK and INTEGER
-            schema.add_column(columns[i], TypeId::INTEGER);
+            schema.AddColumn(columns[i], TypeId::INTEGER);
         } else {
-            schema.add_column(columns[i], TypeId::VARCHAR);
+            schema.AddColumn(columns[i], TypeId::VARCHAR);
         }
     }
     
@@ -36,7 +36,7 @@ bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::ve
     // create first page using the buffer pool manager
     SlottedPage* page = bpm_.NewPage(table_name, &page_id);
     if (page == nullptr) throw std::runtime_error("failed to create table page");
-    page->init(0); // ID = 0 for the first page
+    page->Init(0); // ID = 0 for the first page
     bpm_.UnpinPage(table_name, page_id, true);
 
     // initialize the b+tree
@@ -66,14 +66,14 @@ bool DiskStorageEngine::InsertTuple(const std::string& table_name, const Tuple& 
             try {
                 val = std::stoi(val_str);
             } catch(...) {}
-            builder.set_int(schema.columns[i].name, val);
+            builder.SetInt(schema.columns[i].name, val);
             if (i == 0) pk_val = val;
         } else {
             std::string val_str = tuple[i];
             if (!val_str.empty() && val_str.front() == '\'') val_str.erase(0, 1);
             if (!val_str.empty() && val_str.back() == '\'') val_str.pop_back();
 
-            builder.set_varchar(schema.columns[i].name, val_str);
+            builder.SetVarchar(schema.columns[i].name, val_str);
         }
     }
 
@@ -87,24 +87,24 @@ bool DiskStorageEngine::InsertTuple(const std::string& table_name, const Tuple& 
     SlottedPage* page = bpm_.FetchPage(table_name, current_page_id);
     if (!page) return false;
 
-    if (!page->insert_tuple(builder.get_data(), builder.get_size())) {
+    if (!page->InsertTuple(builder.GetData(), builder.GetSize())) {
         // last page is full, then create a new page
         bpm_.UnpinPage(table_name, current_page_id, false);
         
         page = bpm_.NewPage(table_name, &current_page_id);
         if (!page) return false;
         
-        if (!page->insert_tuple(builder.get_data(), builder.get_size())) {
+        if (!page->InsertTuple(builder.GetData(), builder.GetSize())) {
             bpm_.UnpinPage(table_name, current_page_id, false);
             return false; // record is very big, even for a empty page
         }
     }
 
-    uint16_t slot_id = page->get_header()->num_slots - 1;
-    int64_t rid = RecordId::make_rid(page->get_header()->page_id, slot_id);
+    uint16_t slot_id = page->GetHeader()->num_slots - 1;
+    int64_t rid = RecordId::Pack(current_page_id, slot_id);
 
     BPlusTreeDisk btree(index_file.c_str());
-    btree.insert(pk_val, rid);
+    btree.Insert(pk_val, rid);
 
     bpm_.UnpinPage(table_name, current_page_id, true); // dirty
 
@@ -130,15 +130,15 @@ bool DiskStorageEngine::UpdateTuple(const std::string& table_name, const std::st
 
     if (using_index) {
         BPlusTreeDisk btree(index_file.c_str());
-        int64_t rid = btree.search(search_pk);
+        int64_t rid = btree.Search(search_pk);
         if (rid != -1) {
-            uint32_t p_id = RecordId::get_page_id(rid);
-            uint16_t s_id = RecordId::get_slot_id(rid);
+            uint32_t p_id = RecordId::GetPageId(rid);
+            uint16_t s_id = RecordId::GetSlotId(rid);
             
             SlottedPage* page = bpm_.FetchPage(table_name, p_id);
             if (page) {
                 uint16_t tuple_size;
-                const char* tuple_data = page->read_tuple(s_id, tuple_size);
+                const char* tuple_data = page->ReadTuple(s_id, tuple_size);
                 if (tuple_data != nullptr) {
                     Tuple out_tuple;
                     for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
@@ -148,7 +148,7 @@ bool DiskStorageEngine::UpdateTuple(const std::string& table_name, const std::st
                             std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
                             out_tuple.push_back(std::to_string(val));
                         } else if (col.is_variable) {
-                            uint16_t dir_pos = schema.get_variable_directory_offset() + (col.var_index * 4);
+                            uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
                             uint16_t offset;
                             uint16_t length;
                             std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
@@ -169,13 +169,13 @@ bool DiskStorageEngine::UpdateTuple(const std::string& table_name, const std::st
                     for (size_t i = 0; i < out_tuple.size(); ++i) {
                         if (schema.columns[i].type == TypeId::INTEGER) {
                             int val = std::stoi(out_tuple[i]);
-                            builder.set_int(schema.columns[i].name, val);
+                            builder.SetInt(schema.columns[i].name, val);
                         } else {
-                            builder.set_varchar(schema.columns[i].name, out_tuple[i]);
+                            builder.SetVarchar(schema.columns[i].name, out_tuple[i]);
                         }
                     }
 
-                    if (page->update_tuple(s_id, builder.get_data(), builder.get_size())) {
+                    if (page->UpdateTuple(s_id, builder.GetData(), builder.GetSize())) {
                         updated = true;
                     }
                 }
@@ -205,15 +205,16 @@ bool DiskStorageEngine::DeleteTuple(const std::string& table_name, const std::st
 
     if (using_index) {
         BPlusTreeDisk btree(index_file.c_str());
-        int64_t rid = btree.search(search_pk);
+        int64_t rid = btree.Search(search_pk);
         if (rid != -1) {
-            uint32_t p_id = RecordId::get_page_id(rid);
-            uint16_t s_id = RecordId::get_slot_id(rid);
+            uint32_t p_id = RecordId::GetPageId(rid);
+            uint16_t s_id = RecordId::GetSlotId(rid);
             
             SlottedPage* page = bpm_.FetchPage(table_name, p_id);
             if (page) {
-                page->delete_tuple(s_id);
-                btree.remove(search_pk);
+                page->DeleteTuple(s_id);
+                // remove from tree
+                btree.Remove(search_pk);
                 deleted = true;
                 bpm_.UnpinPage(table_name, p_id, true);
             }
@@ -234,9 +235,9 @@ std::vector<Tuple> DiskStorageEngine::FullScan(const std::string& table_name) {
         SlottedPage* page = bpm_.FetchPage(table_name, p_id);
         if (!page) continue;
 
-        for (uint16_t i = 0; i < page->get_header()->num_slots; ++i) {
+        for (uint16_t i = 0; i < page->GetHeader()->num_slots; ++i) {
             uint16_t tuple_size;
-            const char* tuple_data = page->read_tuple(i, tuple_size);
+            const char* tuple_data = page->ReadTuple(i, tuple_size);
             if (tuple_data != nullptr) {
                 Tuple out_tuple;
                 for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
@@ -246,7 +247,7 @@ std::vector<Tuple> DiskStorageEngine::FullScan(const std::string& table_name) {
                         std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
                         out_tuple.push_back(std::to_string(val));
                     } else if (col.is_variable) {
-                        uint16_t dir_pos = schema.get_variable_directory_offset() + (col.var_index * 4);
+                        uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
                         uint16_t offset;
                         uint16_t length;
                         std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));

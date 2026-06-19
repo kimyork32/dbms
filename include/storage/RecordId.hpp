@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+namespace megatron {
+
 /**
  * Utility namespace to pack and unpack Page ID and Slot ID
  * into a single 64-bit integer payload for the B+Tree.
@@ -14,7 +16,7 @@ namespace RecordId {
      * @param slot_id 16-bit Slot ID.
      * @return 64-bit packed Record ID.
      */
-    inline int64_t make_rid(uint32_t page_id, uint16_t slot_id) {
+    inline int64_t Pack(uint32_t page_id, uint16_t slot_id) {
         return (static_cast<int64_t>(page_id) << 16) | slot_id;
     }
 
@@ -23,7 +25,7 @@ namespace RecordId {
      * @param rid 64-bit packed Record ID.
      * @return 32-bit Page ID.
      */
-    inline uint32_t get_page_id(int64_t rid) {
+    inline uint32_t GetPageId(int64_t rid) {
         return static_cast<uint32_t>(rid >> 16);
     }
 
@@ -32,8 +34,9 @@ namespace RecordId {
      * @param rid 64-bit packed Record ID.
      * @return 16-bit Slot ID.
      */
-    inline uint16_t get_slot_id(int64_t rid) {
+    inline uint16_t GetSlotId(int64_t rid) {
         return static_cast<uint16_t>(rid & 0xFFFF);
     }
 
 } // namespace RecordId
+} // namespace megatron

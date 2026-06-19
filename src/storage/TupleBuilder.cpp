@@ -2,39 +2,43 @@
 
 #include "storage/TupleBuilder.hpp"
 
-TupleBuilder::TupleBuilder(const Schema* s) : schema(s) {
-    uint16_t base_size = schema->tuple_header_size + 
-                         schema->total_fixed_size + 
-                         (schema->num_variable_cols * 4);
-    buffer.assign(base_size, 0);
-    current_var_offset = base_size;
+namespace megatron {
+
+TupleBuilder::TupleBuilder(const Schema* s) : schema_(s) {
+    uint16_t base_size = schema_->tuple_header_size + 
+                         schema_->total_fixed_size + 
+                         (schema_->num_variable_cols * 4);
+    buffer_.assign(base_size, 0);
+    current_var_offset_ = base_size;
 }
 
-void TupleBuilder::set_int(const std::string& col_name, int32_t value) {
-    for (const auto& col : schema->columns) {
+void TupleBuilder::SetInt(const std::string& col_name, int32_t value) {
+    for (const auto& col : schema_->columns) {
         if (col.name == col_name && col.type == TypeId::INTEGER) {
-            std::memcpy(buffer.data() + col.fixed_offset, &value, sizeof(int32_t));
+            std::memcpy(buffer_.data() + col.fixed_offset, &value, sizeof(int32_t));
             return;
         }
     }
 }
 
-void TupleBuilder::set_varchar(const std::string& col_name, const std::string& value) {
-    for (const auto& col : schema->columns) {
+void TupleBuilder::SetVarchar(const std::string& col_name, const std::string& value) {
+    for (const auto& col : schema_->columns) {
         if (col.name == col_name && col.is_variable) {
             uint16_t text_length = value.size();
-            uint16_t dir_pos = schema->get_variable_directory_offset() + (col.var_index * 4);
+            uint16_t dir_pos = schema_->GetVariableDirectoryOffset() + (col.var_index * 4);
 
-            std::memcpy(buffer.data() + dir_pos, &current_var_offset, sizeof(uint16_t));
-            std::memcpy(buffer.data() + dir_pos + 2, &text_length, sizeof(uint16_t));
+            std::memcpy(buffer_.data() + dir_pos, &current_var_offset_, sizeof(uint16_t));
+            std::memcpy(buffer_.data() + dir_pos + 2, &text_length, sizeof(uint16_t));
 
-            buffer.insert(buffer.end(), value.begin(), value.end());
-            current_var_offset += text_length;
+            buffer_.insert(buffer_.end(), value.begin(), value.end());
+            current_var_offset_ += text_length;
             return;
         }
     }
 }
 
-const char* TupleBuilder::get_data() const { return buffer.data(); }
+const char* TupleBuilder::GetData() const { return buffer_.data(); }
 
-uint16_t TupleBuilder::get_size() const { return buffer.size(); }
+uint16_t TupleBuilder::GetSize() const { return buffer_.size(); }
+
+} // namespace megatron

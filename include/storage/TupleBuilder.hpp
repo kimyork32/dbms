@@ -6,14 +6,16 @@
 
 #include "Schema.hpp"
 
+namespace megatron {
+
 /**
- * constructs binary tuples based on a schema
+ * @brief constructs binary tuples based on a schema
  */
 class TupleBuilder {
 private:
-    const Schema* schema;
-    std::vector<char> buffer;
-    uint16_t current_var_offset;
+    const Schema* schema_;
+    std::vector<char> buffer_;
+    uint16_t current_var_offset_;
 
 public:
     /**
@@ -27,24 +29,26 @@ public:
      * @param col_name name of the column
      * @param value integer value
      */
-    void set_int(const std::string& col_name, int32_t value);
+    void SetInt(const std::string& col_name, int32_t value);
 
     /**
      * @brief sets a varchar field
      * @param col_name name of the column
      * @param value string value
      */
-    void set_varchar(const std::string& col_name, const std::string& value);
+    void SetVarchar(const std::string& col_name, const std::string& value);
 
     /**
      * @brief gets the constructed tuple data
      * @return pointer to data buffer
      */
-    const char* get_data() const;
+    const char* GetData() const;
 
     /**
      * @brief gets the total size of the tuple
      * @return size in bytes
      */
-    uint16_t get_size() const;
+    uint16_t GetSize() const;
 };
+
+} // namespace megatron

@@ -149,7 +149,7 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
     *page_id = new_page_id;
 
     // Initialize formatting
-    frames_[victim_frame].page.init(new_page_id);
+    frames_[victim_frame].page.Init(new_page_id);
     
     frames_[victim_frame].table_name = table_name;
     frames_[victim_frame].page_id = new_page_id;

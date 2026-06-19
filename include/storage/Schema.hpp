@@ -6,8 +6,10 @@
 
 #include "TypeId.hpp"
 
+namespace megatron {
+
 /**
- * defines a column in the database schema
+ * @brief defines a column in the database schema
  */
 struct Column {
     std::string name;
@@ -19,7 +21,7 @@ struct Column {
 };
 
 /**
- * manages table structure and tuple layout
+ * @brief manages table structure and tuple layout
  */
 class Schema {
 public:
@@ -33,11 +35,13 @@ public:
      * @param name column name
      * @param type column type
      */
-    void add_column(const std::string& name, TypeId type);
+    void AddColumn(const std::string& name, TypeId type);
 
     /**
      * @brief gets the start offset of variable length directory
      * @return byte offset
      */
-    uint16_t get_variable_directory_offset() const;
+    uint16_t GetVariableDirectoryOffset() const;
 };
+
+} // namespace megatron

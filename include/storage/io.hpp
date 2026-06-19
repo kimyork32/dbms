@@ -2,9 +2,7 @@
 
 #include "SlottedPage.hpp"
 
-/**
- * provides input and output utilities for persistent storage
- */
+namespace megatron {
 
 /**
  * @brief writes a page to disk
@@ -12,7 +10,7 @@
  * @param page page data
  * @param filename target file
  */
-void write_page(uint32_t target_page, SlottedPage& page, const char* filename);
+void WritePage(uint32_t target_page, SlottedPage& page, const char* filename);
 
 /**
  * @brief reads a page from disk
@@ -20,4 +18,6 @@ void write_page(uint32_t target_page, SlottedPage& page, const char* filename);
  * @param page page object to fill
  * @param filename source file
  */
-void read_page(uint32_t target_page, SlottedPage& page, const char* filename);
+void ReadPage(uint32_t target_page, SlottedPage& page, const char* filename);
+
+} // namespace megatron
