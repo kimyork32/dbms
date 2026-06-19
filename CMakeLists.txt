@@ -17,6 +17,9 @@ set(CORE_SOURCES
     src/storage/mvp_utils.cpp
     src/storage/disk_storage_engine.cpp
     src/storage/buffer_pool_manager.cpp
+    src/storage/static_hash.cpp
+    src/storage/extendible_hash.cpp
+    src/storage/linear_hash.cpp
     src/execution/query_executor.cpp
     src/benchmarks/performance_tests.cpp
 )
