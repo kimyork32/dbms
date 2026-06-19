@@ -13,6 +13,7 @@ set(CORE_SOURCES
     src/storage/slotted_page.cpp
     src/storage/tuple_builder.cpp
     src/storage/io.cpp
+    src/storage/b_plus_tree.cpp
     src/storage/mvp_utils.cpp
     src/storage/disk_storage_engine.cpp
     src/storage/buffer_pool_manager.cpp
