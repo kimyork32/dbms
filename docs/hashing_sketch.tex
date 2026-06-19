@@ -1,0 +1,104 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\usepackage{amsmath}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+
+\title{Bosquejo de Estructuras de Hashing en SGBD}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introducción}
+En los sistemas gestores de bases de datos (SGBD), el hashing se utiliza principalmente de dos formas: como estructura física de almacenamiento (índices y archivos) y como algoritmo interno para operaciones de consulta (Joins y Agregaciones). 
+Los tipos de hash más utilizados se dividen en dos categorías principales según su comportamiento ante el crecimiento de los datos: Hash Estático y Hash Dinámico.
+
+\section{Hash Estático (Static Hashing)}
+Es la forma más simple, donde el número de buckets (cubetas) es fijo desde el inicio. La función hash mapea las claves de búsqueda a un conjunto fijo de direcciones. Si muchos registros tienen la misma clave hash y el bucket se llena, se utilizan páginas de desbordamiento (overflow pages).
+
+\subsection*{Bosquejo de Funcionamiento}
+\begin{center}
+\begin{tikzpicture}[>=stealth]
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b0) at (0, 0)    {Bucket 0};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b1) at (0, -1.5) {Bucket 1};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b2) at (0, -3.0) {Bucket 2};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b3) at (0, -4.5) {Bucket 3};
+
+    \node (hash) at (-3.5, -2.25) {$h(k) \bmod 4$};
+
+    \draw[->] (hash.east) to[out=30,  in=180] (b0.west);
+    \draw[->] (hash.east) to[out=10,  in=180] (b1.west);
+    \draw[->] (hash.east) to[out=-10, in=180] (b2.west);
+    \draw[->] (hash.east) to[out=-30, in=180] (b3.west);
+
+    \node[draw, rectangle, dashed, minimum width=2cm, minimum height=1cm] (ov1) at (4, -1.5) {Overflow};
+    \draw[->] (b1.east) -- node[above, font=\footnotesize] {Desbordamiento} (ov1.west);
+\end{tikzpicture}
+\end{center}
+
+\section{Hash Dinámico (Dynamic Hashing)}
+Es el estándar en bases de datos modernas, ya que permite que la estructura crezca o se encoja sin necesidad de reorganizar toda la base de datos. Existen dos variantes dominantes: Extendible Hashing y Linear Hashing.
+
+\subsection{Extendible Hashing}
+Utiliza un directorio de punteros. Cuando un bucket se llena, el directorio puede duplicar su tamaño basándose en la "profundidad global" (Global Depth). Solo se reorganizan los datos del bucket desbordado, modificando su "profundidad local" (Local Depth). Esto evita los desbordamientos largos pero puede causar que el directorio crezca exponencialmente.
+
+\subsection*{Bosquejo de Funcionamiento}
+\begin{center}
+\begin{tikzpicture}[>=stealth]
+    % Directory
+    \node[draw, rectangle, minimum width=1.5cm, minimum height=0.8cm, label=left:00] (d00) at (0, 0) {Ptr};
+    \node[draw, rectangle, minimum width=1.5cm, minimum height=0.8cm, label=left:01] (d01) at (0, -1.2) {Ptr};
+    \node[draw, rectangle, minimum width=1.5cm, minimum height=0.8cm, label=left:10] (d10) at (0, -2.4) {Ptr};
+    \node[draw, rectangle, minimum width=1.5cm, minimum height=0.8cm, label=left:11] (d11) at (0, -3.6) {Ptr};
+    
+    \node at (0, 1) {Directorio (GD=2)};
+
+    % Buckets
+    \node[draw, rectangle, minimum width=2cm, minimum height=1.6cm, label=above:LD=1] (b0) at (4, -0.6) {Datos (*0)};
+    \node[draw, rectangle, minimum width=2cm, minimum height=0.8cm, label=above:LD=2] (b10) at (4, -2.4) {Datos (10)};
+    \node[draw, rectangle, minimum width=2cm, minimum height=0.8cm, label=above:LD=2] (b11) at (4, -3.6) {Datos (11)};
+
+    % Pointers
+    \draw[->] (d00.east) -- (b0.west);
+    \draw[->] (d01.east) -- (b0.west);
+    \draw[->] (d10.east) -- (b10.west);
+    \draw[->] (d11.east) -- (b11.west);
+    
+\end{tikzpicture}
+\end{center}
+
+\subsection{Linear Hashing}
+No usa un directorio central. En su lugar, expande los buckets uno por uno de forma secuencial (lineal) conforme aumenta la carga. Usa un puntero de división (Split Pointer, $s$) para saber qué bucket dividir a continuación, independientemente de qué bucket causó el desbordamiento. Permite el uso temporal de páginas de desbordamiento para evitar duplicaciones masivas.
+
+\subsection*{Bosquejo de Funcionamiento}
+\begin{center}
+\begin{tikzpicture}[>=stealth]
+    % Buckets
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b0) at (0, 0) {Bucket 0};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b1) at (0, -1.5) {Bucket 1};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b2) at (0, -3.0) {Bucket 2};
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm] (b3) at (0, -4.5) {Bucket 3};
+    
+    % Split pointer
+    \node[text=red] (split) at (-2, -1.5) {$s$ (Split Ptr)};
+    \draw[->, red, thick] (split) -- (b1.west);
+    
+    % New bucket
+    \node[draw, rectangle, minimum width=2cm, minimum height=1cm, dashed] (b4) at (0, -6.0) {Bucket 4};
+    \node at (4, -6.0) {Nuevo (dividido de Bucket 0)};
+    
+    % Curva de division
+    \draw[->, dashed] (b0.east) to[out=0, in=0] (b4.east);
+    
+    % Hash function info
+    \node at (0, 1.5) {$N=4$, Funciones: $h_0(k) = k \bmod 4$, $h_1(k) = k \pmod{8}$};
+
+\end{tikzpicture}
+\end{center}
+
+\end{document}
