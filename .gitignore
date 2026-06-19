@@ -2,3 +2,5 @@
 *.db
 *.bd
 *.text
+compile_commands.json
+.cache/
