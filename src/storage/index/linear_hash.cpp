@@ -1,4 +1,4 @@
-#include "storage/linear_hash.hpp"
+#include "storage/index/linear_hash.hpp"
 #include <string>
 
 namespace megatron {

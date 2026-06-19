@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdint>
 
-#include "schema.hpp"
+#include "storage/record/schema.hpp"
 
 namespace megatron {
 

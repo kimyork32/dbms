@@ -9,17 +9,17 @@ include_directories(include)
 
 set(CORE_SOURCES
     src/parser/parser.cpp
-    src/storage/schema.cpp
-    src/storage/slotted_page.cpp
-    src/storage/tuple_builder.cpp
-    src/storage/io.cpp
-    src/storage/b_plus_tree.cpp
-    src/storage/mvp_utils.cpp
-    src/storage/disk_storage_engine.cpp
-    src/storage/buffer_pool_manager.cpp
-    src/storage/static_hash.cpp
-    src/storage/extendible_hash.cpp
-    src/storage/linear_hash.cpp
+    src/storage/record/schema.cpp
+    src/storage/record/tuple_builder.cpp
+    src/storage/record/mvp_utils.cpp
+    src/storage/page/slotted_page.cpp
+    src/storage/page/io.cpp
+    src/storage/page/buffer_pool_manager.cpp
+    src/storage/index/b_plus_tree.cpp
+    src/storage/index/static_hash.cpp
+    src/storage/index/extendible_hash.cpp
+    src/storage/index/linear_hash.cpp
+    src/storage/engine/disk_storage_engine.cpp
     src/execution/query_executor.cpp
     src/benchmarks/performance_tests.cpp
 )

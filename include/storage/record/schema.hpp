@@ -4,7 +4,7 @@
 #include <string>
 #include <cstdint>
 
-#include "type_id.hpp"
+#include "storage/record/type_id.hpp"
 
 namespace megatron {
 

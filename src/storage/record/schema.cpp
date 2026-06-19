@@ -1,4 +1,4 @@
-#include "storage/schema.hpp"
+#include "storage/record/schema.hpp"
 
 namespace megatron {
 

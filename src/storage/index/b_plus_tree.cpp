@@ -1,4 +1,4 @@
-#include "storage/b_plus_tree.hpp"
+#include "storage/index/b_plus_tree.hpp"
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>

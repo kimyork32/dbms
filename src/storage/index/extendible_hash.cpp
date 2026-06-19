@@ -1,4 +1,4 @@
-#include "storage/extendible_hash.hpp"
+#include "storage/index/extendible_hash.hpp"
 #include <string>
 
 namespace megatron {

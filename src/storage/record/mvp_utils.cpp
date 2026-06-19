@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cstring>
 
-#include "storage/utils.hpp"
+#include "storage/record/utils.hpp"
 
 namespace megatron {
 

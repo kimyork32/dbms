@@ -1,11 +1,11 @@
-#include "storage/disk_storage_engine.hpp"
+#include "storage/engine/disk_storage_engine.hpp"
 #include <stdexcept>
 #include <cstring>
 #include <cstdio>
-#include "storage/slotted_page.hpp"
-#include "storage/tuple_builder.hpp"
-#include "storage/b_plus_tree.hpp"
-#include "storage/record_id.hpp"
+#include "storage/page/slotted_page.hpp"
+#include "storage/record/tuple_builder.hpp"
+#include "storage/index/b_plus_tree.hpp"
+#include "storage/page/record_id.hpp"
 
 namespace megatron {
 

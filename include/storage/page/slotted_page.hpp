@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include "page_header.hpp"
+#include "storage/page/page_header.hpp"
 
 namespace megatron {
 

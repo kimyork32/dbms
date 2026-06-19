@@ -1,5 +1,5 @@
 #include "benchmarks/performance_tests.hpp"
-#include "storage/disk_storage_engine.hpp"
+#include "storage/engine/disk_storage_engine.hpp"
 #include <iostream>
 
 using namespace megatron;

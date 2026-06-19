@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <stdexcept>
-#include "page_header.hpp"
+#include "storage/page/page_header.hpp"
 
 namespace megatron {
 
