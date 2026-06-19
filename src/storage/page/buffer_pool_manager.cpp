@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <stdexcept>
-#include <iostream>
 
 #include <unordered_map>
 
@@ -92,26 +91,28 @@ SlottedPage* GlobalBufferPoolManager::FetchPage(const std::string& table_name, u
         return nullptr; // all pinned
     }
 
-    if (frames_[victim_frame].is_valid && frames_[victim_frame].is_dirty) {
-        WritePageToDisk(frames_[victim_frame].table_name, frames_[victim_frame].page_id, frames_[victim_frame].page);
+    auto& victim = frames_[victim_frame];
+
+    if (victim.is_valid && victim.is_dirty) {
+        WritePageToDisk(victim.table_name, victim.page_id, victim.page);
     }
 
-    if (frames_[victim_frame].is_valid) {
-        page_table_.erase({frames_[victim_frame].table_name, frames_[victim_frame].page_id});
+    if (victim.is_valid) {
+        page_table_.erase({victim.table_name, victim.page_id});
     }
 
-    ReadPageFromDisk(table_name, page_id, frames_[victim_frame].page);
+    ReadPageFromDisk(table_name, page_id, victim.page);
     
-    frames_[victim_frame].table_name = table_name;
-    frames_[victim_frame].page_id = page_id;
-    frames_[victim_frame].pin_count = 1;
-    frames_[victim_frame].is_dirty = false;
-    frames_[victim_frame].ref_bit = true;
-    frames_[victim_frame].is_valid = true;
+    victim.table_name = table_name;
+    victim.page_id = page_id;
+    victim.pin_count = 1;
+    victim.is_dirty = false;
+    victim.ref_bit = true;
+    victim.is_valid = true;
     
     page_table_[key] = victim_frame;
 
-    return &frames_[victim_frame].page;
+    return &victim.page;
 }
 
 SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uint32_t* page_id) {
@@ -122,12 +123,14 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
         return nullptr;
     }
 
-    if (frames_[victim_frame].is_valid && frames_[victim_frame].is_dirty) {
-        WritePageToDisk(frames_[victim_frame].table_name, frames_[victim_frame].page_id, frames_[victim_frame].page);
+    auto& victim = frames_[victim_frame];
+
+    if (victim.is_valid && victim.is_dirty) {
+        WritePageToDisk(victim.table_name, victim.page_id, victim.page);
     }
 
-    if (frames_[victim_frame].is_valid) {
-        page_table_.erase({frames_[victim_frame].table_name, frames_[victim_frame].page_id});
+    if (victim.is_valid) {
+        page_table_.erase({victim.table_name, victim.page_id});
     }
 
     // Determine new page id
@@ -149,18 +152,18 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
     *page_id = new_page_id;
 
     // Initialize formatting
-    frames_[victim_frame].page.Init(new_page_id);
+    victim.page.Init(new_page_id);
     
-    frames_[victim_frame].table_name = table_name;
-    frames_[victim_frame].page_id = new_page_id;
-    frames_[victim_frame].pin_count = 1;
-    frames_[victim_frame].is_dirty = true; // newly created means needs flushing
-    frames_[victim_frame].ref_bit = true;
-    frames_[victim_frame].is_valid = true;
+    victim.table_name = table_name;
+    victim.page_id = new_page_id;
+    victim.pin_count = 1;
+    victim.is_dirty = true; // newly created means needs flushing
+    victim.ref_bit = true;
+    victim.is_valid = true;
     
     page_table_[{table_name, new_page_id}] = victim_frame;
 
-    return &frames_[victim_frame].page;
+    return &victim.page;
 }
 
 bool GlobalBufferPoolManager::UnpinPage(const std::string& table_name, uint32_t page_id, bool is_dirty) {

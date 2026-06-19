@@ -88,7 +88,7 @@ namespace megatron {
     }
 
     package "Storage Engine (Fase 1)" {
-        interface IStorageEngine {
+        interface StorageEngineInterface {
             + {abstract} CreateTable(table_name: string, columns: vector<string>): bool
             + {abstract} TableExists(table_name: string): bool
             + {abstract} InsertTuple(table_name: string, tuple: vector<string>): bool
@@ -99,12 +99,12 @@ namespace megatron {
             - tables_ : map<string, vector<Tuple>>
         }
         
-        IStorageEngine <|.. MemoryStorageEngine
+        StorageEngineInterface <|.. MemoryStorageEngine
     }
 
     ' Relaciones entre capas
     Parser ..> "Execution Engine" : "Transforms AST to Plan"
-    "Execution Engine" --> IStorageEngine : "Read/Write Data"
+    "Execution Engine" --> StorageEngineInterface : "Read/Write Data"
 }
 
 @enduml

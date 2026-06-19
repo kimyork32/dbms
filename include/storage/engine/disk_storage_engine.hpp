@@ -12,7 +12,7 @@ namespace megatron {
 /**
  * implements a disk-based storage engine
  */
-class DiskStorageEngine : public IStorageEngine {
+class DiskStorageEngine : public StorageEngineInterface {
 public:
     DiskStorageEngine();
 

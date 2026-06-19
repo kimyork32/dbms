@@ -4,7 +4,7 @@
 
 namespace megatron {
 
-constexpr size_t PAGE_SIZE = 4096;
+constexpr std::size_t PAGE_SIZE = 4096;
 
 #pragma pack(push, 1)
 /**

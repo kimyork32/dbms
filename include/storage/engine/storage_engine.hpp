@@ -1,37 +1,35 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <memory>
-#include <map>
 
 namespace megatron {
 
-// Representa un valor de columna simple (podría expandirse a una clase más compleja para tipos de datos)
+// represents a simple column value (could be expanded to a more complex class for data types)
 using Value = std::string;
 using Tuple = std::vector<Value>;
 
 /**
- * @brief Interfaz base para el motor de almacenamiento.
- * Define las operaciones básicas de acceso a datos que el motor de ejecución requiere.
+ * @brief base interface for the storage engine
+ * defines the basic data access operations that the execution engine requires
  */
-class IStorageEngine {
+class StorageEngineInterface {
 public:
-    virtual ~IStorageEngine() = default;
+    virtual ~StorageEngineInterface() = default;
 
-    // Gestión de Metadatos
+    // metadata management
     virtual bool CreateTable(const std::string& table_name, const std::vector<std::string>& columns) = 0;
     virtual bool TableExists(const std::string& table_name) const = 0;
 
-    // Operaciones de Datos
+    // data operations
     virtual bool InsertTuple(const std::string& table_name, const Tuple& tuple) = 0;
     virtual bool UpdateTuple(const std::string& table_name, const std::string& set_col, const std::string& set_val, const std::string& where_col, const std::string& where_val) = 0;
     virtual bool DeleteTuple(const std::string& table_name, const std::string& where_col, const std::string& where_val) = 0;
     
-    // El escaneo de tablas en un motor real usaría iteradores (Volcano Model)
-    // Aquí definimos una versión simplificada que retorna todas las tuplas.
+    // table scanning in a real engine would use iterators (Volcano Model)
+    // here we define a simplified version that returns all tuples
     virtual std::vector<Tuple> FullScan(const std::string& table_name) = 0;
 
-    // En el futuro, aquí irían TransactionManager, LockManager, etc.
+    // in the future, TransactionManager, LockManager, etc. would go here
 };
 
 } // namespace megatron
