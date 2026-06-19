@@ -116,7 +116,7 @@ std::unique_ptr<ASTNode> Parser::ParseSelect(Lexer& lexer) {
     std::string col_token = lexer.NextToken();
     if (col_token != "*") {
         stmt->select_all = false;
-        // Parsear lista de columnas... (omitido para brevedad en este ejemplo)
+        // TODO: implement for other operators. Only support '=' operator
     }
 
     ExpectKeyword(lexer, "FROM");

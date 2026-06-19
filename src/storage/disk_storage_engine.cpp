@@ -16,7 +16,7 @@ bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::ve
 
     Schema schema;
     for (size_t i = 0; i < columns.size(); ++i) {
-        if (i == 0) { // Asumimos la primera columna como INTEGER y PK
+        if (i == 0) { // first column is assumed to be PK and INTEGER
             schema.add_column(columns[i], TypeId::INTEGER);
         } else {
             schema.add_column(columns[i], TypeId::VARCHAR);
@@ -28,18 +28,18 @@ bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::ve
     std::string db_file = table_name + ".bd";
     std::string index_file = table_name + "_index.db";
 
-    // Limpiar archivos anteriores si existen
+    // remove old files if exists
     std::remove(db_file.c_str());
     std::remove(index_file.c_str());
 
-    // Crear la primera página de datos a través de BPM
     uint32_t page_id;
+    // create first page using the buffer pool manager
     SlottedPage* page = bpm_.NewPage(table_name, &page_id);
     if (page == nullptr) throw std::runtime_error("failed to create table page");
-    page->init(0); // Forzar ID 0 para la primera página
+    page->init(0); // ID = 0 for the first page
     bpm_.UnpinPage(table_name, page_id, true);
 
-    // Inicializar el B+ Tree
+    // initialize the b+tree
     BPlusTreeDisk btree(index_file.c_str());
 
     return true;
@@ -79,16 +79,16 @@ bool DiskStorageEngine::InsertTuple(const std::string& table_name, const Tuple& 
 
     std::string index_file = table_name + "_index.db";
 
-    // Buscar una página con espacio
+    // find a page with free space
     uint32_t num_pages = bpm_.GetNumPages(table_name);
     if (num_pages == 0) return false;
 
-    uint32_t current_page_id = num_pages - 1; // Intentamos en la última página
+    uint32_t current_page_id = num_pages - 1; 
     SlottedPage* page = bpm_.FetchPage(table_name, current_page_id);
     if (!page) return false;
 
     if (!page->insert_tuple(builder.get_data(), builder.get_size())) {
-        // La última página está llena. Creamos una nueva.
+        // last page is full, then create a new page
         bpm_.UnpinPage(table_name, current_page_id, false);
         
         page = bpm_.NewPage(table_name, &current_page_id);
@@ -96,7 +96,7 @@ bool DiskStorageEngine::InsertTuple(const std::string& table_name, const Tuple& 
         
         if (!page->insert_tuple(builder.get_data(), builder.get_size())) {
             bpm_.UnpinPage(table_name, current_page_id, false);
-            return false; // El registro es demasiado grande incluso para una página vacía
+            return false; // record is very big, even for a empty page
         }
     }
 
@@ -106,7 +106,7 @@ bool DiskStorageEngine::InsertTuple(const std::string& table_name, const Tuple& 
     BPlusTreeDisk btree(index_file.c_str());
     btree.insert(pk_val, rid);
 
-    bpm_.UnpinPage(table_name, current_page_id, true); // Dirty
+    bpm_.UnpinPage(table_name, current_page_id, true); // dirty
 
     return true;
 }
