@@ -40,16 +40,26 @@ void ExecuteQuery(const std::string& query, DiskStorageEngine& storage, bool pri
         }
         else if (ast->GetType() == StatementType::SELECT) {
             auto stmt = static_cast<SelectStatement*>(ast.get());
-            auto results = storage.FullScan(stmt->table_name);
+            std::string tbl = stmt->table_name;
+            if (tbl.empty() && stmt->from_table && stmt->from_table->GetRefType() == TableRefType::BASE_TABLE) {
+                tbl = static_cast<BaseTableRef*>(stmt->from_table.get())->table_name;
+            }
+            auto results = storage.FullScan(tbl);
             
             if (print_results) {
                 std::cout << "[Execution] select results:\n";
                 int count = 0;
                 for (const auto& row : results) {
-                    if (stmt->where_clause.active) {
+                    if (stmt->where_clause) {
                         bool match = false;
-                        for (const auto& val : row) {
-                            if (val == stmt->where_clause.value) match = true;
+                        if (stmt->where_clause->GetExprType() == ExpressionType::BINARY_OP) {
+                            auto bin_op = static_cast<BinaryOpExpression*>(stmt->where_clause.get());
+                            if (bin_op->right && bin_op->right->GetExprType() == ExpressionType::LITERAL) {
+                                std::string target_val = static_cast<LiteralExpression*>(bin_op->right.get())->value;
+                                for (const auto& val : row) {
+                                    if (val == target_val) match = true;
+                                }
+                            }
                         }
                         if (!match) continue;
                     }

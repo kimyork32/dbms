@@ -1,0 +1,1 @@
+/usr/bin/c++ -fsanitize=address -g -Wl,--dependency-file=CMakeFiles/megatron.dir/link.d CMakeFiles/megatron.dir/src/main.cpp.o -o megatron  libmegatron_core.a

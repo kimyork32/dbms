@@ -1,66 +1,70 @@
 #pragma once
+
 #include "ast.hpp"
+#include "lexer.hpp"
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace megatron {
 
 /**
- * @brief simple tokenizer to separate sql words
+ * @brief result structure for parse query api
  */
-class Lexer {
-public:
-    explicit Lexer(std::string source);
-
-    /**
-     * @brief returns the next token and advances the position
-     * @return next token string
-     */
-    std::string NextToken();
-
-    /**
-     * @brief checks if there are more tokens
-     * @return true if more tokens exist
-     */
-    bool HasMore() const;
-
-    /**
-     * @brief returns the next token without advancing the position
-     * @return next token string
-     */
-    std::string Peek() const;
-
-private:
-    std::vector<std::string> tokens_;
-    size_t current_pos_ = 0;
+struct ParseResult {
+    bool success{false};
+    std::string error_message;
+    std::unique_ptr<ASTNode> ast;
 };
 
 /**
- * @brief manual sql parser (recursive descent) responsible for transforming text into an ast
+ * @brief top-level function to parse sql string into parse result
+ * @param sql sql query string
+ * @return ParseResult containing success flag, error message, and AST root pointer
+ */
+ParseResult ParseQuery(const std::string& sql);
+
+/**
+ * @brief manual sql parser (recursive descent) responsible for transforming tokens into an ast
  */
 class Parser {
 public:
+    explicit Parser(Lexer lexer);
+
     /**
-     * @brief parses an sql query string into an ast
-     * @param query the sql query string
-     * @return unique pointer to the root ast node
+     * @brief static entry point to parse a query string into ast
      */
     static std::unique_ptr<ASTNode> Parse(const std::string& query);
 
-private:
-    static std::unique_ptr<ASTNode> ParseCreate(Lexer& lexer);
-    static std::unique_ptr<ASTNode> ParseInsert(Lexer& lexer);
-    static std::unique_ptr<ASTNode> ParseSelect(Lexer& lexer);
-    static std::unique_ptr<ASTNode> ParseUpdate(Lexer& lexer);
-    static std::unique_ptr<ASTNode> ParseDelete(Lexer& lexer);
-
     /**
-     * @brief expects a specific sql keyword, throws if not found
-     * @param lexer the active lexer
-     * @param expected_keyword the keyword to expect (must be uppercase)
+     * @brief parses a complete sql statement
      */
-    static void ExpectKeyword(Lexer& lexer, const std::string& expected_keyword);
+    std::unique_ptr<ASTNode> ParseStatement();
+
+private:
+    std::unique_ptr<ASTNode> ParseCreate();
+    std::unique_ptr<ASTNode> ParseInsert();
+    std::unique_ptr<ASTNode> ParseSelect();
+    std::unique_ptr<ASTNode> ParseUpdate();
+    std::unique_ptr<ASTNode> ParseDelete();
+
+    // clause parsing helpers
+    std::unique_ptr<TableRef> ParseTableRef();
+    std::unique_ptr<TableRef> ParseBaseTableRef();
+    std::unique_ptr<ExpressionNode> ParseExpression();
+    std::unique_ptr<ExpressionNode> ParseLogicalOr();
+    std::unique_ptr<ExpressionNode> ParseLogicalAnd();
+    std::unique_ptr<ExpressionNode> ParseComparison();
+    std::unique_ptr<ExpressionNode> ParseAdditive();
+    std::unique_ptr<ExpressionNode> ParseMultiplicative();
+    std::unique_ptr<ExpressionNode> ParsePrimary();
+
+    // utility helper methods
+    Token Expect(TokenType expected_type, const std::string& error_msg);
+    Token ExpectKeyword(TokenType expected_type, const std::string& expected_str);
+    bool Match(TokenType type);
+
+    Lexer lexer_;
 };
 
 } // namespace megatron
