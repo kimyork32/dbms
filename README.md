@@ -1,71 +1,71 @@
 # Megatron DBMS
 
-Megatron DBMS es un sistema de gestión de bases de datos relacional (RDBMS) diseñado con fines educativos y de investigación. Se ha construido utilizando una arquitectura modular que separa claramente las responsabilidades del procesamiento de consultas, la ejecución y el almacenamiento en disco, todo ello implementado en C++ moderno.
+Megatron DBMS is a relational database management system (RDBMS) designed for educational and research purposes. It is built using a modular architecture that clearly separates the responsibilities of query processing, execution, and disk storage, all implemented in modern C++.
 
 ---
 
-## Arquitectura del Sistema
+## System Architecture
 
-La arquitectura de Megatron sigue el modelo clásico de los sistemas de bases de datos relacionales, dividiéndose en las siguientes capas principales:
+The architecture of Megatron follows the classic model of relational database systems, divided into the following main layers:
 
-1. **Parser (Analizador Sintáctico):** Toma una consulta SQL cruda y genera un Árbol de Sintaxis Abstracta (AST).
-2. **Binder (Analizador Semántico):** Valida el AST contra el Catálogo de la base de datos, asegurándose de que las tablas y columnas referenciadas existan y los tipos de datos sean compatibles.
-3. **Optimizer (Optimizador de Consultas):** Toma el AST validado y genera un plan de ejecución físico (`PlanNode`). Durante esta fase, el optimizador también inyecta *hints* de memoria (`BufferHint`) basados en reglas heurísticas (por ejemplo, mantener tablas hash en RAM o descartar páginas tras un escaneo masivo secuencial).
-4. **Execution Engine (Motor de Ejecución):** Sigue el modelo Volcano (iterador). Cada nodo del plan es procesado por un `Executor` que va "jalando" tuplas (pull) mediante el método `Next()`.
-5. **Storage Engine (Motor de Almacenamiento):** Gestiona la persistencia de datos en disco. Incluye el manejo de páginas (Slotted Pages), un gestor de buffer global (Buffer Pool Manager) y estructuras de acceso e indexación.
+1. **Parser:** Takes a raw SQL query and generates an Abstract Syntax Tree (AST).
+2. **Binder (Semantic Analyzer):** Validates the AST against the database Catalog, ensuring that the referenced tables and columns exist and the data types are compatible.
+3. **Optimizer:** Takes the validated AST and generates a physical execution plan (`PlanNode`). During this phase, the optimizer also injects memory *hints* (`BufferHint`) based on heuristic rules (for example, keeping hash tables in RAM or quickly discarding pages after a massive sequential scan).
+4. **Execution Engine:** Follows the Volcano (iterator) model. Each plan node is processed by an `Executor` that "pulls" tuples using the `Next()` method.
+5. **Storage Engine:** Manages data persistence on disk. It includes the handling of pages (Slotted Pages), a global buffer manager (Buffer Pool Manager), and access and indexing structures.
 
 ---
 
-## Estructura de Directorios
+## Directory Structure
 
-El código fuente está organizado lógicamente separando cabeceras (`include/`) e implementaciones (`src/`). 
+The source code is logically organized, separating headers (`include/`) and implementations (`src/`).
 
 ```text
 megatron_db/
-├── CMakeLists.txt          # Configuración de compilación para CMake
-├── docs/                   # Documentación y tareas del proyecto
-├── include/                # Archivos de cabecera (.hpp)
-│   ├── binder/             # Lógica y definiciones del analizador semántico (Binder)
-│   ├── catalog/            # Catálogo del sistema (esquemas y metadatos)
-│   ├── execution/          # Clases para los nodos del plan (PlanNode) y ejecutores
-│   ├── optimizer/          # Optimizador de consultas heurístico
-│   ├── parser/             # Lexer, Parser y definiciones del AST
-│   └── storage/            # Submódulos de almacenamiento:
-│       ├── engine/         # Interfaz y motor principal de almacenamiento en disco
-│       ├── index/          # Métodos de acceso a datos (Árboles B+, Tablas Hash)
-│       ├── page/           # Manejo de páginas en disco (SlottedPage) y Buffer Pool
-│       └── record/         # Definiciones de tuplas, tipos de datos y esquemas
-└── src/                    # Código fuente (.cpp)
-    ├── benchmarks/         # Batería de pruebas unitarias, de estrés y rendimiento (Tests)
-    ├── binder/             # Implementación del Binder
-    ├── catalog/            # Implementación del Catálogo
-    ├── execution/          # Implementación de los Executors (SeqScan, HashJoin, etc.)
-    ├── optimizer/          # Implementación de las reglas de optimización
-    ├── parser/             # Implementación del analizador sintáctico
-    ├── storage/            # Implementación profunda de almacenamiento (Buffer Pool, I/O)
-    └── main.cpp            # Punto de entrada de la aplicación
+├── CMakeLists.txt          # CMake build configuration
+├── docs/                   # Documentation and project tasks
+├── include/                # Header files (.hpp)
+│   ├── binder/             # Semantic analyzer (Binder) logic and definitions
+│   ├── catalog/            # System catalog (schemas and metadata)
+│   ├── execution/          # Classes for plan nodes (PlanNode) and executors
+│   ├── optimizer/          # Heuristic query optimizer
+│   ├── parser/             # Lexer, Parser, and AST definitions
+│   └── storage/            # Storage submodules:
+│       ├── engine/         # Disk storage engine interface and core
+│       ├── index/          # Data access methods (B+ Trees, Hash Tables)
+│       ├── page/           # Disk page handling (SlottedPage) and Buffer Pool
+│       └── record/         # Tuple definitions, data types, and schemas
+└── src/                    # Source code (.cpp)
+    ├── benchmarks/         # Unit, stress, and performance test suites (Tests)
+    ├── binder/             # Binder implementation
+    ├── catalog/            # Catalog implementation
+    ├── execution/          # Executors implementation (SeqScan, HashJoin, etc.)
+    ├── optimizer/          # Optimization rules implementation
+    ├── parser/             # Parser implementation
+    ├── storage/            # Deep storage implementation (Buffer Pool, I/O)
+    └── main.cpp            # Application entry point
 ```
 
-### Detalle de Componentes Clave
+### Key Components Detail
 
-- **`storage/page/buffer_pool_manager`:** Administra qué páginas del disco se encuentran en memoria caché RAM. Implementa algoritmos de reemplazo y además es **Plan-Aware**; es decir, utiliza indicaciones semánticas del optimizador (`BufferHint`) para decidir cuándo mantener una página en memoria (`KEEP_HOT`) o cuándo descartarla rápidamente (`DISCARD_QUICKLY`).
-- **`execution/executor`:** Implementa los operadores relacionales básicos como `SeqScanExecutor`, `IndexScanExecutor`, `HashJoinExecutor`, `AggregationExecutor` y `FilterExecutor`.
-- **`storage/index/b_plus_tree`:** Estructura de árbol B+ persistente en disco, responsable del escaneo por índice para agilizar búsquedas.
-- **`benchmarks/`:** Todas las pruebas modulares se realizan aquí (Módulos M1, M2, M3), validando desde la concurrencia en el buffer pool hasta pruebas completas que engranan Binder, Optimizador, y Ejecutores.
+- **`storage/page/buffer_pool_manager`:** Manages which disk pages are cached in RAM. It implements replacement algorithms and is also **Plan-Aware**; meaning it uses semantic hints from the optimizer (`BufferHint`) to decide when to keep a page in memory (`KEEP_HOT`) or when to discard it quickly (`DISCARD_QUICKLY`).
+- **`execution/executor`:** Implements basic relational operators like `SeqScanExecutor`, `IndexScanExecutor`, `HashJoinExecutor`, `AggregationExecutor`, and `FilterExecutor`.
+- **`storage/index/b_plus_tree`:** Persistent B+ tree structure on disk, responsible for index scanning to speed up lookups.
+- **`benchmarks/`:** All modular tests are performed here (Modules M1, M2, M3), validating everything from buffer pool concurrency to end-to-end tests involving the Binder, Optimizer, and Executors.
 
 ---
 
-## Compilación y Ejecución
+## Build and Execution
 
-Megatron DBMS utiliza CMake para la construcción del sistema.
+Megatron DBMS uses CMake for its build system.
 
-### Requisitos
+### Requirements
 - CMake (>= 3.10)
-- Compilador de C++ con soporte para C++17 (GCC, Clang o MSVC)
+- C++ compiler with C++17 support (GCC, Clang, or MSVC)
 
-### Construcción
+### Build
 
-Desde la raíz del proyecto, ejecuta:
+From the root of the project, run:
 
 ```bash
 mkdir -p build
@@ -74,16 +74,16 @@ cmake ..
 make -j4
 ```
 
-### Correr Pruebas (Tests)
+### Running Tests
 
-Para garantizar la integridad y el correcto funcionamiento de los distintos módulos:
+To ensure the integrity and correct operation of the different modules:
 
 ```bash
 cd build
 ctest --output-on-failure
 ```
 
-También puedes ejecutar ejecutables de prueba específicos directamente desde `build/`:
+You can also run specific test executables directly from `build/`:
 ```bash
 ./megatron_m3_test
 ./megatron_binder_stress_test
