@@ -47,6 +47,13 @@ public:
         return plan_node_;
     }
 
+    /**
+     * @brief gets buffer pool retention hint from physical plan node
+     */
+    BufferHint GetBufferHint() const {
+        return plan_node_ != nullptr ? plan_node_->GetBufferHint() : BufferHint::DEFAULT;
+    }
+
 protected:
     const AbstractPlanNode* plan_node_{nullptr};
 };
@@ -56,10 +63,12 @@ protected:
  */
 class SeqScanExecutor : public AbstractExecutor {
 public:
-    SeqScanExecutor(std::string table_name, const TableMetadata* meta = nullptr, std::vector<Tuple> tuples = {});
-    explicit SeqScanExecutor(const SeqScanPlanNode* plan, const TableMetadata* meta = nullptr, std::vector<Tuple> tuples = {});
+    SeqScanExecutor(std::string table_name, const TableMetadata* meta = nullptr, std::vector<Tuple> tuples = {}, StorageEngineInterface* storage = nullptr, GlobalBufferPoolManager* bpm = nullptr);
+    explicit SeqScanExecutor(const SeqScanPlanNode* plan, const TableMetadata* meta = nullptr, std::vector<Tuple> tuples = {}, StorageEngineInterface* storage = nullptr, GlobalBufferPoolManager* bpm = nullptr);
 
     void SetTuples(std::vector<Tuple> tuples, std::vector<RID> rids = {});
+    void SetStorageEngine(StorageEngineInterface* storage) { storage_ = storage; }
+    void SetBufferPoolManager(GlobalBufferPoolManager* bpm) { bpm_ = bpm; }
     void Init() override;
     bool Next(Tuple* tuple, RID* rid = nullptr) override;
     const Schema& GetOutputSchema() const override;
@@ -67,10 +76,52 @@ public:
 
 private:
     std::string table_name_;
+    const TableMetadata* meta_{nullptr};
+    StorageEngineInterface* storage_{nullptr};
+    GlobalBufferPoolManager* bpm_{nullptr};
     std::vector<Tuple> tuples_;
     std::vector<RID> rids_;
     Schema schema_;
     size_t cursor_ = 0;
+};
+
+/**
+ * @brief index scan executor
+ */
+class IndexScanExecutor : public AbstractExecutor {
+public:
+    IndexScanExecutor(std::string table_name,
+                      std::string index_name,
+                      std::string search_key,
+                      const TableMetadata* meta = nullptr,
+                      GlobalBufferPoolManager* bpm = nullptr);
+    explicit IndexScanExecutor(const IndexScanPlanNode* plan,
+                               const TableMetadata* meta = nullptr,
+                               GlobalBufferPoolManager* bpm = nullptr);
+
+    void SetTuples(std::vector<Tuple> tuples, std::vector<RID> rids = {});
+    void SetRIDs(std::vector<RID> rids);
+    void SetBufferPoolManager(GlobalBufferPoolManager* bpm) { bpm_ = bpm; }
+
+    void Init() override;
+    bool Next(Tuple* tuple, RID* rid = nullptr) override;
+    const Schema& GetOutputSchema() const override;
+
+    const std::string& GetTableName() const;
+    const std::string& GetIndexName() const;
+    const std::string& GetSearchKey() const;
+
+private:
+    std::string table_name_;
+    std::string index_name_;
+    std::string search_key_;
+    const TableMetadata* meta_{nullptr};
+    GlobalBufferPoolManager* bpm_{nullptr};
+    Schema schema_;
+    std::vector<RID> matching_rids_;
+    size_t cursor_{0};
+    std::vector<Tuple> tuples_;
+    std::vector<RID> rids_;
 };
 
 /**

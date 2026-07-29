@@ -1,24 +1,27 @@
 #include "execution/executor.hpp"
+#include "storage/index/b_plus_tree.hpp"
 #include <stdexcept>
 #include <cmath>
+#include <cstring>
 
 namespace megatron {
 namespace execution {
 
 // ================= SeqScanExecutor =================
 
-SeqScanExecutor::SeqScanExecutor(std::string table_name, const TableMetadata* meta, std::vector<Tuple> tuples)
-    : AbstractExecutor(nullptr), table_name_(std::move(table_name)), tuples_(std::move(tuples)) {
+SeqScanExecutor::SeqScanExecutor(std::string table_name, const TableMetadata* meta, std::vector<Tuple> tuples, StorageEngineInterface* storage, GlobalBufferPoolManager* bpm)
+    : AbstractExecutor(nullptr), table_name_(std::move(table_name)), meta_(meta), storage_(storage), bpm_(bpm), tuples_(std::move(tuples)) {
     if (meta) {
         schema_ = meta->schema;
     }
 }
 
-SeqScanExecutor::SeqScanExecutor(const SeqScanPlanNode* plan, const TableMetadata* meta, std::vector<Tuple> tuples)
-    : AbstractExecutor(plan), tuples_(std::move(tuples)) {
+SeqScanExecutor::SeqScanExecutor(const SeqScanPlanNode* plan, const TableMetadata* meta, std::vector<Tuple> tuples, StorageEngineInterface* storage, GlobalBufferPoolManager* bpm)
+    : AbstractExecutor(plan), meta_(meta), storage_(storage), bpm_(bpm), tuples_(std::move(tuples)) {
     if (plan) {
         table_name_ = plan->GetTableName();
         schema_ = plan->GetOutputSchema();
+        if (!meta_) meta_ = plan->GetTableMeta();
     } else if (meta) {
         table_name_ = meta->table_name;
         schema_ = meta->schema;
@@ -32,6 +35,45 @@ void SeqScanExecutor::SetTuples(std::vector<Tuple> tuples, std::vector<RID> rids
 
 void SeqScanExecutor::Init() {
     cursor_ = 0;
+    if (tuples_.empty()) {
+        BufferHint hint = GetBufferHint();
+        if (storage_ != nullptr) {
+            tuples_ = storage_->FullScan(table_name_, hint);
+        } else if (bpm_ != nullptr) {
+            tuples_.clear();
+            rids_.clear();
+            uint32_t num_pages = bpm_->GetNumPages(table_name_);
+            const Schema& schema = schema_.columns.empty() ? (meta_ ? meta_->schema : schema_) : schema_;
+            for (uint32_t p_id = 0; p_id < num_pages; ++p_id) {
+                SlottedPage* page = bpm_->FetchPage(table_name_, p_id, hint);
+                if (!page) continue;
+                for (uint16_t i = 0; i < page->GetHeader()->num_slots; ++i) {
+                    uint16_t tuple_size;
+                    const char* tuple_data = page->ReadTuple(i, tuple_size);
+                    if (tuple_data != nullptr) {
+                        Tuple out_tuple;
+                        for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
+                            const auto& col = schema.columns[col_idx];
+                            if (col.type == TypeId::INTEGER) {
+                                int32_t val;
+                                std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
+                                out_tuple.push_back(std::to_string(val));
+                            } else if (col.is_variable) {
+                                uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
+                                uint16_t offset, length;
+                                std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
+                                std::memcpy(&length, tuple_data + dir_pos + 2, sizeof(uint16_t));
+                                out_tuple.push_back(std::string(tuple_data + offset, length));
+                            }
+                        }
+                        tuples_.push_back(out_tuple);
+                        rids_.push_back(RID(p_id, i));
+                    }
+                }
+                bpm_->UnpinPage(table_name_, p_id, false);
+            }
+        }
+    }
 }
 
 bool SeqScanExecutor::Next(Tuple* tuple, RID* rid) {
@@ -60,6 +102,151 @@ const Schema& SeqScanExecutor::GetOutputSchema() const {
 
 const std::string& SeqScanExecutor::GetTableName() const {
     return table_name_;
+}
+
+// ================= IndexScanExecutor =================
+
+IndexScanExecutor::IndexScanExecutor(std::string table_name,
+                                     std::string index_name,
+                                     std::string search_key,
+                                     const TableMetadata* meta,
+                                     GlobalBufferPoolManager* bpm)
+    : AbstractExecutor(nullptr),
+      table_name_(std::move(table_name)),
+      index_name_(std::move(index_name)),
+      search_key_(std::move(search_key)),
+      meta_(meta),
+      bpm_(bpm) {
+    if (meta_) {
+        schema_ = meta_->schema;
+    }
+}
+
+IndexScanExecutor::IndexScanExecutor(const IndexScanPlanNode* plan,
+                                     const TableMetadata* meta,
+                                     GlobalBufferPoolManager* bpm)
+    : AbstractExecutor(plan),
+      meta_(meta),
+      bpm_(bpm) {
+    if (plan) {
+        table_name_ = plan->GetTableName();
+        index_name_ = plan->GetIndexName();
+        search_key_ = plan->GetSearchKey();
+        schema_ = plan->GetOutputSchema();
+        if (!meta_) meta_ = plan->GetTableMeta();
+    } else if (meta) {
+        table_name_ = meta->table_name;
+        schema_ = meta->schema;
+    }
+}
+
+void IndexScanExecutor::SetTuples(std::vector<Tuple> tuples, std::vector<RID> rids) {
+    tuples_ = std::move(tuples);
+    rids_ = std::move(rids);
+}
+
+void IndexScanExecutor::SetRIDs(std::vector<RID> rids) {
+    matching_rids_ = std::move(rids);
+}
+
+void IndexScanExecutor::Init() {
+    cursor_ = 0;
+    if (matching_rids_.empty()) {
+        BufferHint hint = GetBufferHint();
+        std::string idx_filename = index_name_.empty() ? (table_name_ + "_index.db") : index_name_;
+        try {
+            if (!search_key_.empty()) {
+                int key = std::stoi(search_key_);
+                BPlusTreeDisk tree(idx_filename.c_str());
+                int64_t packed_rid = tree.Search(key, hint);
+                if (packed_rid != -1) {
+                    uint32_t page_id = static_cast<uint32_t>(packed_rid >> 16);
+                    uint16_t slot_id = static_cast<uint16_t>(packed_rid & 0xFFFF);
+                    matching_rids_.push_back(RID(page_id, slot_id));
+                }
+            }
+        } catch (...) {
+        }
+    }
+}
+
+bool IndexScanExecutor::Next(Tuple* tuple, RID* rid) {
+    BufferHint hint = GetBufferHint();
+
+    if (cursor_ < matching_rids_.size()) {
+        RID target_rid = matching_rids_[cursor_];
+        if (rid != nullptr) {
+            *rid = target_rid;
+        }
+
+        if (bpm_ != nullptr) {
+            SlottedPage* page = bpm_->FetchPage(table_name_, target_rid.page_id, hint);
+            if (page != nullptr) {
+                uint16_t tuple_size;
+                const char* tuple_data = page->ReadTuple(target_rid.slot_id, tuple_size);
+                if (tuple_data != nullptr) {
+                    Tuple out_tuple;
+                    const Schema& schema = schema_.columns.empty() ? (meta_ ? meta_->schema : schema_) : schema_;
+                    for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
+                        const auto& col = schema.columns[col_idx];
+                        if (col.type == TypeId::INTEGER) {
+                            int32_t val;
+                            std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
+                            out_tuple.push_back(std::to_string(val));
+                        } else if (col.is_variable) {
+                            uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
+                            uint16_t offset, length;
+                            std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
+                            std::memcpy(&length, tuple_data + dir_pos + 2, sizeof(uint16_t));
+                            out_tuple.push_back(std::string(tuple_data + offset, length));
+                        }
+                    }
+                    if (tuple != nullptr) {
+                        *tuple = std::move(out_tuple);
+                    }
+                }
+                bpm_->UnpinPage(table_name_, target_rid.page_id, false);
+            }
+        } else if (cursor_ < tuples_.size()) {
+            if (tuple != nullptr) {
+                *tuple = tuples_[cursor_];
+            }
+        }
+
+        cursor_++;
+        return true;
+    } else if (cursor_ < tuples_.size()) {
+        if (tuple != nullptr) {
+            *tuple = tuples_[cursor_];
+        }
+        if (rid != nullptr) {
+            if (cursor_ < rids_.size()) {
+                *rid = rids_[cursor_];
+            } else {
+                *rid = RID(0, static_cast<uint16_t>(cursor_));
+            }
+        }
+        cursor_++;
+        return true;
+    }
+
+    return false;
+}
+
+const Schema& IndexScanExecutor::GetOutputSchema() const {
+    return schema_;
+}
+
+const std::string& IndexScanExecutor::GetTableName() const {
+    return table_name_;
+}
+
+const std::string& IndexScanExecutor::GetIndexName() const {
+    return index_name_;
+}
+
+const std::string& IndexScanExecutor::GetSearchKey() const {
+    return search_key_;
 }
 
 // ================= HashJoinExecutor =================
@@ -122,6 +309,8 @@ void HashJoinExecutor::Init() {
         return;
     }
 
+    BufferHint left_hint = left_child_->GetBufferHint();
+    (void)left_hint;
     Tuple left_tuple;
     RID left_rid;
     while (left_child_->Next(&left_tuple, &left_rid)) {
@@ -130,6 +319,8 @@ void HashJoinExecutor::Init() {
         }
     }
 
+    BufferHint right_hint = right_child_->GetBufferHint();
+    (void)right_hint;
     Tuple right_tuple;
     RID right_rid;
     while (right_child_->Next(&right_tuple, &right_rid)) {

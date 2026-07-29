@@ -223,7 +223,7 @@ bool DiskStorageEngine::DeleteTuple(const std::string& table_name, const std::st
     return deleted;
 }
 
-std::vector<Tuple> DiskStorageEngine::FullScan(const std::string& table_name) {
+std::vector<Tuple> DiskStorageEngine::FullScan(const std::string& table_name, BufferHint hint) {
     if (!TableExists(table_name)) return {};
     
     Schema& schema = schemas_[table_name];
@@ -232,7 +232,7 @@ std::vector<Tuple> DiskStorageEngine::FullScan(const std::string& table_name) {
     uint32_t num_pages = bpm_.GetNumPages(table_name);
 
     for (uint32_t p_id = 0; p_id < num_pages; ++p_id) {
-        SlottedPage* page = bpm_.FetchPage(table_name, p_id);
+        SlottedPage* page = bpm_.FetchPage(table_name, p_id, hint);
         if (!page) continue;
 
         for (uint16_t i = 0; i < page->GetHeader()->num_slots; ++i) {

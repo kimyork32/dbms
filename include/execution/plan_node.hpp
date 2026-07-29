@@ -9,6 +9,7 @@
 #include "catalog/catalog.hpp"
 #include "storage/record/schema.hpp"
 #include "storage/engine/storage_engine.hpp"
+#include "storage/page/buffer_pool_manager.hpp"
 
 namespace megatron {
 namespace execution {
@@ -23,7 +24,8 @@ enum class PlanType {
     NestedLoopJoin,
     Aggregation,
     Filter,
-    Projection
+    Projection,
+    Insert
 };
 
 /**
@@ -68,8 +70,12 @@ struct RID {
  */
 class AbstractPlanNode {
 public:
-    AbstractPlanNode(Schema output_schema, std::vector<std::shared_ptr<const AbstractPlanNode>> children)
-        : output_schema_(std::move(output_schema)), children_(std::move(children)) {}
+    AbstractPlanNode(Schema output_schema,
+                     std::vector<std::shared_ptr<const AbstractPlanNode>> children,
+                     BufferHint hint = BufferHint::DEFAULT)
+        : output_schema_(std::move(output_schema)),
+          children_(std::move(children)),
+          hint_(hint) {}
 
     virtual ~AbstractPlanNode() = default;
 
@@ -102,9 +108,24 @@ public:
         return nullptr;
     }
 
+    /**
+     * @brief gets buffer pool retention hint
+     */
+    BufferHint GetBufferHint() const {
+        return hint_;
+    }
+
+    /**
+     * @brief sets buffer pool retention hint
+     */
+    void SetBufferHint(BufferHint hint) {
+        hint_ = hint;
+    }
+
 protected:
     Schema output_schema_;
     std::vector<std::shared_ptr<const AbstractPlanNode>> children_;
+    BufferHint hint_{BufferHint::DEFAULT};
 };
 
 /**
@@ -112,8 +133,11 @@ protected:
  */
 class SeqScanPlanNode : public AbstractPlanNode {
 public:
-    SeqScanPlanNode(Schema output_schema, std::string table_name, const TableMetadata* table_meta = nullptr)
-        : AbstractPlanNode(std::move(output_schema), {}),
+    SeqScanPlanNode(Schema output_schema,
+                    std::string table_name,
+                    const TableMetadata* table_meta = nullptr,
+                    BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {}, hint),
           table_name_(std::move(table_name)),
           table_meta_(table_meta) {}
 
@@ -135,6 +159,50 @@ private:
 };
 
 /**
+ * @brief physical index scan plan node
+ */
+class IndexScanPlanNode : public AbstractPlanNode {
+public:
+    IndexScanPlanNode(Schema output_schema,
+                      std::string table_name,
+                      std::string index_name,
+                      std::string search_key,
+                      const TableMetadata* table_meta = nullptr,
+                      BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {}, hint),
+          table_name_(std::move(table_name)),
+          index_name_(std::move(index_name)),
+          search_key_(std::move(search_key)),
+          table_meta_(table_meta) {}
+
+    PlanType GetType() const override {
+        return PlanType::IndexScan;
+    }
+
+    const std::string& GetTableName() const {
+        return table_name_;
+    }
+
+    const std::string& GetIndexName() const {
+        return index_name_;
+    }
+
+    const std::string& GetSearchKey() const {
+        return search_key_;
+    }
+
+    const TableMetadata* GetTableMeta() const {
+        return table_meta_;
+    }
+
+private:
+    std::string table_name_;
+    std::string index_name_;
+    std::string search_key_;
+    const TableMetadata* table_meta_{nullptr};
+};
+
+/**
  * @brief physical hash join plan node
  */
 class HashJoinPlanNode : public AbstractPlanNode {
@@ -143,8 +211,9 @@ public:
                      std::shared_ptr<const AbstractPlanNode> left_child,
                      std::shared_ptr<const AbstractPlanNode> right_child,
                      size_t left_key_idx,
-                     size_t right_key_idx)
-        : AbstractPlanNode(std::move(output_schema), {std::move(left_child), std::move(right_child)}),
+                     size_t right_key_idx,
+                     BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {std::move(left_child), std::move(right_child)}, hint),
           left_key_idx_(left_key_idx),
           right_key_idx_(right_key_idx) {}
 
@@ -182,8 +251,9 @@ public:
                         std::shared_ptr<const AbstractPlanNode> child,
                         std::vector<size_t> group_by_indices,
                         size_t agg_col_idx,
-                        AggregateType agg_type)
-        : AbstractPlanNode(std::move(output_schema), {std::move(child)}),
+                        AggregateType agg_type,
+                        BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {std::move(child)}, hint),
           group_by_indices_(std::move(group_by_indices)),
           agg_col_idx_(agg_col_idx),
           agg_type_(agg_type) {}
@@ -223,8 +293,9 @@ public:
 
     FilterPlanNode(Schema output_schema,
                    std::shared_ptr<const AbstractPlanNode> child,
-                   PredicateFn predicate)
-        : AbstractPlanNode(std::move(output_schema), {std::move(child)}),
+                   PredicateFn predicate,
+                   BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {std::move(child)}, hint),
           predicate_(std::move(predicate)) {}
 
     PlanType GetType() const override {
@@ -257,8 +328,9 @@ class ProjectionPlanNode : public AbstractPlanNode {
 public:
     ProjectionPlanNode(Schema output_schema,
                        std::shared_ptr<const AbstractPlanNode> child,
-                       std::vector<size_t> select_indices)
-        : AbstractPlanNode(std::move(output_schema), {std::move(child)}),
+                       std::vector<size_t> select_indices,
+                       BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {std::move(child)}, hint),
           select_indices_(std::move(select_indices)) {}
 
     PlanType GetType() const override {
@@ -275,6 +347,78 @@ public:
 
 private:
     std::vector<size_t> select_indices_;
+};
+
+/**
+ * @brief physical nested loop join plan node
+ */
+class NestedLoopJoinPlanNode : public AbstractPlanNode {
+public:
+    using JoinPredicateFn = std::function<bool(const Tuple&, const Tuple&)>;
+
+    NestedLoopJoinPlanNode(Schema output_schema,
+                           std::shared_ptr<const AbstractPlanNode> left_child,
+                           std::shared_ptr<const AbstractPlanNode> right_child,
+                           JoinPredicateFn predicate = nullptr,
+                           BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {std::move(left_child), std::move(right_child)}, hint),
+          predicate_(std::move(predicate)) {}
+
+    PlanType GetType() const override {
+        return PlanType::NestedLoopJoin;
+    }
+
+    const AbstractPlanNode* GetLeftChild() const {
+        return GetChildAt(0);
+    }
+
+    const AbstractPlanNode* GetRightChild() const {
+        return GetChildAt(1);
+    }
+
+    const JoinPredicateFn& GetPredicate() const {
+        return predicate_;
+    }
+
+private:
+    JoinPredicateFn predicate_;
+};
+
+/**
+ * @brief physical insert plan node
+ */
+class InsertPlanNode : public AbstractPlanNode {
+public:
+    InsertPlanNode(Schema output_schema,
+                   std::string table_name,
+                   std::vector<std::vector<std::string>> raw_values,
+                   const TableMetadata* table_meta = nullptr,
+                   BufferHint hint = BufferHint::DEFAULT)
+        : AbstractPlanNode(std::move(output_schema), {}, hint),
+          table_name_(std::move(table_name)),
+          raw_values_(std::move(raw_values)),
+          table_meta_(table_meta) {}
+
+    PlanType GetType() const override {
+        return PlanType::Insert;
+    }
+
+    const std::string& GetTableName() const {
+        return table_name_;
+    }
+
+    const std::vector<std::vector<std::string>>& GetRawValues() const {
+        return raw_values_;
+    }
+
+    const TableMetadata* GetTableMeta() const {
+        return table_meta_;
+    }
+
+private:
+    std::string table_name_;
+    std::vector<std::vector<std::string>> raw_values_;
+    const TableMetadata* table_meta_{nullptr};
 };
 
 } // namespace execution

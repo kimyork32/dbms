@@ -243,6 +243,65 @@ static void TestSeqScanLargeCursorRID() {
     std::cout << "[PASSED] TestSeqScanLargeCursorRID" << std::endl;
 }
 
+// test IndexScanPlanNode and IndexScanExecutor functionality
+static void TestIndexScanPlanAndExecutor() {
+    std::cout << "running TestIndexScanPlanAndExecutor..." << std::endl;
+
+    Schema schema;
+    schema.AddColumn("id", TypeId::INTEGER);
+    schema.AddColumn("name", TypeId::VARCHAR);
+
+    auto idx_plan = std::make_shared<IndexScanPlanNode>(schema, "users", "idx_users_id", "42", nullptr, BufferHint::KEEP_HOT);
+    AssertTrue(idx_plan->GetType() == PlanType::IndexScan, "IndexScanPlanNode type mismatch");
+    AssertTrue(idx_plan->GetTableName() == "users", "table_name mismatch");
+    AssertTrue(idx_plan->GetIndexName() == "idx_users_id", "index_name mismatch");
+    AssertTrue(idx_plan->GetSearchKey() == "42", "search_key mismatch");
+    AssertTrue(idx_plan->GetBufferHint() == BufferHint::KEEP_HOT, "IndexScanPlanNode BufferHint mismatch");
+
+    IndexScanExecutor idx_exec(idx_plan.get());
+    AssertTrue(idx_exec.GetBufferHint() == BufferHint::KEEP_HOT, "IndexScanExecutor GetBufferHint mismatch");
+    AssertTrue(idx_exec.GetTableName() == "users", "IndexScanExecutor table_name mismatch");
+    AssertTrue(idx_exec.GetIndexName() == "idx_users_id", "IndexScanExecutor index_name mismatch");
+    AssertTrue(idx_exec.GetSearchKey() == "42", "IndexScanExecutor search_key mismatch");
+
+    idx_exec.SetTuples({{"42", "Douglas"}}, {RID(5, 12)});
+    idx_exec.Init();
+
+    Tuple t;
+    RID r;
+    AssertTrue(idx_exec.Next(&t, &r), "IndexScanExecutor Next returned false");
+    AssertTrue(t[0] == "42" && t[1] == "Douglas", "IndexScanExecutor tuple mismatch");
+    AssertTrue(r.page_id == 5 && r.slot_id == 12, "IndexScanExecutor RID mismatch");
+    AssertTrue(!idx_exec.Next(&t, &r), "IndexScanExecutor returned extra tuple");
+
+    std::cout << "[PASSED] TestIndexScanPlanAndExecutor" << std::endl;
+}
+
+// test BufferHint propagation through executors
+static void TestBufferHintPropagationInExecutors() {
+    std::cout << "running TestBufferHintPropagationInExecutors..." << std::endl;
+
+    Schema schema;
+    schema.AddColumn("id", TypeId::INTEGER);
+
+    auto left_plan = std::make_shared<SeqScanPlanNode>(schema, "t1", nullptr, BufferHint::KEEP_HOT);
+    auto right_plan = std::make_shared<IndexScanPlanNode>(schema, "t2", "idx_t2", "10", nullptr, BufferHint::DISCARD_QUICKLY);
+
+    auto left_exec = std::make_unique<SeqScanExecutor>(left_plan.get());
+    auto right_exec = std::make_unique<IndexScanExecutor>(right_plan.get());
+
+    AssertTrue(left_exec->GetBufferHint() == BufferHint::KEEP_HOT, "SeqScanExecutor hint propagation failed");
+    AssertTrue(right_exec->GetBufferHint() == BufferHint::DISCARD_QUICKLY, "IndexScanExecutor hint propagation failed");
+
+    auto join_plan = std::make_shared<HashJoinPlanNode>(schema, left_plan, right_plan, 0, 0, BufferHint::DEFAULT);
+    HashJoinExecutor join_exec(join_plan.get(), std::move(left_exec), std::move(right_exec));
+
+    AssertTrue(join_exec.GetLeftChild()->GetBufferHint() == BufferHint::KEEP_HOT, "HashJoin left child hint failed");
+    AssertTrue(join_exec.GetRightChild()->GetBufferHint() == BufferHint::DISCARD_QUICKLY, "HashJoin right child hint failed");
+
+    std::cout << "[PASSED] TestBufferHintPropagationInExecutors" << std::endl;
+}
+
 int main() {
     std::cout << "=== starting direct physical plan volcano unit tests ===" << std::endl;
     TestSeqScan();
@@ -250,6 +309,8 @@ int main() {
     TestStateResetOnReInit();
     TestGlobalAggEmptyStream();
     TestSeqScanLargeCursorRID();
+    TestIndexScanPlanAndExecutor();
+    TestBufferHintPropagationInExecutors();
     std::cout << "=== all physical plan unit tests PASSED successfully ===" << std::endl;
     return 0;
 }

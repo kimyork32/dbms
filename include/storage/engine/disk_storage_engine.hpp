@@ -64,7 +64,7 @@ public:
      * @param table_name name of the table
      * @return vector of tuples
      */
-    std::vector<Tuple> FullScan(const std::string& table_name) override;
+    std::vector<Tuple> FullScan(const std::string& table_name, BufferHint hint = BufferHint::DEFAULT) override;
 
 private:
     std::map<std::string, Schema> schemas_;

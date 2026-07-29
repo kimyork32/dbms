@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include "storage/page/page_header.hpp"
+#include "storage/page/buffer_pool_manager.hpp"
 
 namespace megatron {
 
@@ -78,7 +79,7 @@ private:
 public:
     BPlusTreeDisk(const char* filename);
     ~BPlusTreeDisk();
-    int64_t Search(int k);
+    int64_t Search(int k, BufferHint hint = BufferHint::DEFAULT);
     void Insert(int k, int64_t v);
     void Remove(int k);
 };

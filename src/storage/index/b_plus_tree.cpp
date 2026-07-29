@@ -390,7 +390,7 @@ BPlusTreeDisk::~BPlusTreeDisk() {
     close(fd_);
 }
 
-int64_t BPlusTreeDisk::Search(int k) {
+int64_t BPlusTreeDisk::Search(int k, BufferHint hint) {
     int64_t curr_off = meta_.root_offset;
     char buf[PAGE_SIZE];
 
