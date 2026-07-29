@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include "storage/page/page_header.hpp"
+#include "storage/page/buffer_pool_manager.hpp"
 
 namespace megatron {
 
@@ -38,8 +39,8 @@ struct BPlusLeafNode {
     NodeHeader header;      ///< node header
     int64_t prev_leaf;      ///< offset to previous leaf (doubly linked list)
     int64_t next_leaf;      ///< offset to next leaf (doubly linked list)
-    K keys[2 * B - 1];      ///< array of keys
-    V payloads[2 * B - 1];  ///< array of values associated with keys
+    K keys[2 * B];          ///< array of keys
+    V payloads[2 * B];      ///< array of values associated with keys
 };
 
 /**
@@ -49,8 +50,8 @@ struct BPlusLeafNode {
 template <typename K>
 struct BPlusInternalNode {
     NodeHeader header;               ///< node header
-    K keys[2 * B - 1];               ///< array of keys that act as separators
-    int64_t children_offsets[2 * B]; ///< offsets to child nodes
+    K keys[2 * B];                   ///< array of keys that act as separators
+    int64_t children_offsets[2 * B + 1]; ///< offsets to child nodes
 };
 
 /**
@@ -78,7 +79,7 @@ private:
 public:
     BPlusTreeDisk(const char* filename);
     ~BPlusTreeDisk();
-    int64_t Search(int k);
+    int64_t Search(int k, BufferHint hint = BufferHint::DEFAULT);
     void Insert(int k, int64_t v);
     void Remove(int k);
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "storage/page/buffer_pool_manager.hpp"
 
 namespace megatron {
 
@@ -27,7 +28,7 @@ public:
     
     // table scanning in a real engine would use iterators (Volcano Model)
     // here we define a simplified version that returns all tuples
-    virtual std::vector<Tuple> FullScan(const std::string& table_name) = 0;
+    virtual std::vector<Tuple> FullScan(const std::string& table_name, BufferHint hint = BufferHint::DEFAULT) = 0;
 
     // in the future, TransactionManager, LockManager, etc. would go here
 };

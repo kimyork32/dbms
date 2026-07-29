@@ -36,6 +36,15 @@ void Schema::AddColumn(const std::string& name, TypeId type) {
     columns.push_back(col);
 }
 
+int Schema::GetColIdx(const std::string& name) const {
+    for (size_t i = 0; i < columns.size(); ++i) {
+        if (columns[i].name == name) {
+            return static_cast<int>(i);
+        }
+    }
+    return -1;
+}
+
 uint16_t Schema::GetVariableDirectoryOffset() const {
     return tuple_header_size + total_fixed_size;
 }

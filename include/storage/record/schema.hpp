@@ -38,6 +38,13 @@ public:
     void AddColumn(const std::string& name, TypeId type);
 
     /**
+     * @brief gets column index by column name
+     * @param name column name
+     * @return 0-based column index or -1 if not found
+     */
+    int GetColIdx(const std::string& name) const;
+
+    /**
      * @brief gets the start offset of variable length directory
      * @return byte offset
      */

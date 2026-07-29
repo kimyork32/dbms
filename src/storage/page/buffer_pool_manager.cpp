@@ -60,22 +60,68 @@ void GlobalBufferPoolManager::WritePageToDisk(const std::string& table_name, uin
 }
 
 bool GlobalBufferPoolManager::FindVictim(size_t* frame_id) {
-    for (size_t i = 0; i < pool_size_ * 2; ++i) { // Two passes max
-        if (frames_[clock_hand_].pin_count == 0) {
-            if (frames_[clock_hand_].ref_bit) {
-                frames_[clock_hand_].ref_bit = false;
-            } else {
-                *frame_id = clock_hand_;
-                clock_hand_ = (clock_hand_ + 1) % pool_size_;
-                return true;
+    // Tier 0: Invalid / empty frames (!is_valid)
+    for (size_t i = 0; i < pool_size_; ++i) {
+        size_t idx = (clock_hand_ + i) % pool_size_;
+        if (!frames_[idx].is_valid) {
+            *frame_id = idx;
+            clock_hand_ = (idx + 1) % pool_size_;
+            return true;
+        }
+    }
+
+    // Tier 1: Unpinned DISCARD_QUICKLY frames
+    for (size_t pass = 0; pass < 2; ++pass) {
+        for (size_t i = 0; i < pool_size_; ++i) {
+            size_t idx = (clock_hand_ + i) % pool_size_;
+            if (frames_[idx].pin_count == 0 && frames_[idx].hint == BufferHint::DISCARD_QUICKLY) {
+                if (frames_[idx].ref_bit) {
+                    frames_[idx].ref_bit = false;
+                } else {
+                    *frame_id = idx;
+                    clock_hand_ = (idx + 1) % pool_size_;
+                    return true;
+                }
             }
         }
-        clock_hand_ = (clock_hand_ + 1) % pool_size_;
     }
+
+    // Tier 2: Unpinned DEFAULT frames via 2-pass Clock algorithm
+    for (size_t pass = 0; pass < 2; ++pass) {
+        for (size_t i = 0; i < pool_size_; ++i) {
+            size_t idx = (clock_hand_ + i) % pool_size_;
+            if (frames_[idx].pin_count == 0 && frames_[idx].hint == BufferHint::DEFAULT) {
+                if (frames_[idx].ref_bit) {
+                    frames_[idx].ref_bit = false;
+                } else {
+                    *frame_id = idx;
+                    clock_hand_ = (idx + 1) % pool_size_;
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Tier 3: Unpinned KEEP_HOT frames via 2-pass Clock algorithm as last resort
+    for (size_t pass = 0; pass < 2; ++pass) {
+        for (size_t i = 0; i < pool_size_; ++i) {
+            size_t idx = (clock_hand_ + i) % pool_size_;
+            if (frames_[idx].pin_count == 0 && frames_[idx].hint == BufferHint::KEEP_HOT) {
+                if (frames_[idx].ref_bit) {
+                    frames_[idx].ref_bit = false;
+                } else {
+                    *frame_id = idx;
+                    clock_hand_ = (idx + 1) % pool_size_;
+                    return true;
+                }
+            }
+        }
+    }
+
     return false;
 }
 
-SlottedPage* GlobalBufferPoolManager::FetchPage(const std::string& table_name, uint32_t page_id) {
+SlottedPage* GlobalBufferPoolManager::FetchPage(const std::string& table_name, uint32_t page_id, BufferHint hint) {
     std::lock_guard<std::mutex> lock(latch_);
     auto key = std::make_pair(table_name, page_id);
     
@@ -83,6 +129,9 @@ SlottedPage* GlobalBufferPoolManager::FetchPage(const std::string& table_name, u
         size_t frame_id = page_table_[key];
         frames_[frame_id].pin_count++;
         frames_[frame_id].ref_bit = true;
+        if (hint != BufferHint::DEFAULT) {
+            frames_[frame_id].hint = hint;
+        }
         return &frames_[frame_id].page;
     }
 
@@ -109,13 +158,14 @@ SlottedPage* GlobalBufferPoolManager::FetchPage(const std::string& table_name, u
     victim.is_dirty = false;
     victim.ref_bit = true;
     victim.is_valid = true;
+    victim.hint = hint;
     
     page_table_[key] = victim_frame;
 
     return &victim.page;
 }
 
-SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uint32_t* page_id) {
+SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uint32_t* page_id, BufferHint hint) {
     std::lock_guard<std::mutex> lock(latch_);
     
     size_t victim_frame;
@@ -160,6 +210,7 @@ SlottedPage* GlobalBufferPoolManager::NewPage(const std::string& table_name, uin
     victim.is_dirty = true; // newly created means needs flushing
     victim.ref_bit = true;
     victim.is_valid = true;
+    victim.hint = hint;
     
     page_table_[{table_name, new_page_id}] = victim_frame;
 

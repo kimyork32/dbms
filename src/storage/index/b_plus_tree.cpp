@@ -60,7 +60,9 @@ void BPlusTreeDisk::DeallocatePage(int64_t offset) {
 }
 
 void BPlusTreeDisk::SplitChild(int64_t parent_off, int index, int64_t child_off) {
-    char p_buf[PAGE_SIZE], c_buf[PAGE_SIZE], z_buf[PAGE_SIZE] = {0};
+    alignas(16) char p_buf[PAGE_SIZE];
+    alignas(16) char c_buf[PAGE_SIZE];
+    alignas(16) char z_buf[PAGE_SIZE] = {0};
     
     ReadPage(parent_off, p_buf);
     ReadPage(child_off, c_buf);
@@ -132,7 +134,7 @@ void BPlusTreeDisk::SplitChild(int64_t parent_off, int index, int64_t child_off)
 }
 
 void BPlusTreeDisk::InsertNonFull(int64_t node_off, int k, int64_t v) {
-    char buf[PAGE_SIZE];
+    alignas(16) char buf[PAGE_SIZE];
     ReadPage(node_off, buf);
     NodeHeader* hdr = reinterpret_cast<NodeHeader*>(buf);
     
@@ -155,7 +157,7 @@ void BPlusTreeDisk::InsertNonFull(int64_t node_off, int k, int64_t v) {
         i++;
         
         int64_t child_off = internal->children_offsets[i];
-        char c_buf[PAGE_SIZE];
+        alignas(16) char c_buf[PAGE_SIZE];
         ReadPage(child_off, c_buf);
         NodeHeader* child_hdr = reinterpret_cast<NodeHeader*>(c_buf);
         
@@ -388,7 +390,7 @@ BPlusTreeDisk::~BPlusTreeDisk() {
     close(fd_);
 }
 
-int64_t BPlusTreeDisk::Search(int k) {
+int64_t BPlusTreeDisk::Search(int k, BufferHint hint) {
     int64_t curr_off = meta_.root_offset;
     char buf[PAGE_SIZE];
 

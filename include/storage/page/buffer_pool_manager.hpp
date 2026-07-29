@@ -9,6 +9,15 @@
 namespace megatron {
 
 /**
+ * @brief Buffer access hint supplied by physical plan nodes and access methods
+ */
+enum class BufferHint {
+    DEFAULT = 0,
+    KEEP_HOT,
+    DISCARD_QUICKLY
+};
+
+/**
  * @brief custom hash function for pair<string, uint32_t>
  */
 struct BPM_PageKeyHash {
@@ -37,17 +46,19 @@ public:
      * @brief fetches a page from the buffer pool or disk
      * @param table_name name of the table
      * @param page_id identifier of the page
+     * @param hint buffer retention hint
      * @return pointer to the slotted page, or nullptr if fetch fails
      */
-    SlottedPage* FetchPage(const std::string& table_name, uint32_t page_id);
+    SlottedPage* FetchPage(const std::string& table_name, uint32_t page_id, BufferHint hint = BufferHint::DEFAULT);
 
     /**
      * @brief creates a new page in the buffer pool
      * @param table_name name of the table
      * @param page_id pointer to store the newly created page identifier
+     * @param hint buffer retention hint
      * @return pointer to the new slotted page, or nullptr if pool is full
      */
-    SlottedPage* NewPage(const std::string& table_name, uint32_t* page_id);
+    SlottedPage* NewPage(const std::string& table_name, uint32_t* page_id, BufferHint hint = BufferHint::DEFAULT);
 
     /**
      * @brief unpins a page in the buffer pool
@@ -79,6 +90,7 @@ private:
         bool is_dirty = false;
         bool ref_bit = false;
         bool is_valid = false;
+        BufferHint hint = BufferHint::DEFAULT;
     };
 
     size_t pool_size_;
