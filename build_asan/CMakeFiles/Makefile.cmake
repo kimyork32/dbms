@@ -59,4 +59,10 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/megatron_benchmark.dir/DependInfo.cmake"
   "CMakeFiles/megatron_execution_test.dir/DependInfo.cmake"
   "CMakeFiles/megatron_challenge_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_m1_challenger2_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_m2_challenger1_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_m2_challenger2_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_m3_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_binder_stress_test.dir/DependInfo.cmake"
+  "CMakeFiles/megatron_m3_challenger2_test.dir/DependInfo.cmake"
   )

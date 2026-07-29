@@ -9,9 +9,11 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/rsk/projects/db/dbms/src/benchmarks/performance_tests.cpp" "CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o.d"
+  "/home/rsk/projects/db/dbms/src/binder/binder.cpp" "CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/catalog/catalog.cpp" "CMakeFiles/megatron_core.dir/src/catalog/catalog.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/catalog/catalog.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/execution/executor.cpp" "CMakeFiles/megatron_core.dir/src/execution/executor.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/execution/executor.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/execution/query_executor.cpp" "CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.o.d"
+  "/home/rsk/projects/db/dbms/src/optimizer/optimizer.cpp" "CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/parser/lexer.cpp" "CMakeFiles/megatron_core.dir/src/parser/lexer.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/parser/lexer.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/parser/parser.cpp" "CMakeFiles/megatron_core.dir/src/parser/parser.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/parser/parser.cpp.o.d"
   "/home/rsk/projects/db/dbms/src/storage/engine/disk_storage_engine.cpp" "CMakeFiles/megatron_core.dir/src/storage/engine/disk_storage_engine.cpp.o" "gcc" "CMakeFiles/megatron_core.dir/src/storage/engine/disk_storage_engine.cpp.o.d"

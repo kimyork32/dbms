@@ -65,6 +65,16 @@ CMAKE_BINARY_DIR = /home/rsk/projects/db/dbms/build_asan
 #=============================================================================
 # Targets provided globally by CMake.
 
+# Special rule for the target test
+test:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
+	/usr/bin/ctest $(ARGS)
+.PHONY : test
+
+# Special rule for the target test
+test/fast: test
+.PHONY : test/fast
+
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "No interactive CMake dialog available..."
@@ -181,6 +191,84 @@ megatron_challenge_test/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_challenge_test.dir/build.make CMakeFiles/megatron_challenge_test.dir/build
 .PHONY : megatron_challenge_test/fast
 
+#=============================================================================
+# Target rules for targets named megatron_m1_challenger2_test
+
+# Build rule for target.
+megatron_m1_challenger2_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m1_challenger2_test
+.PHONY : megatron_m1_challenger2_test
+
+# fast build rule for target.
+megatron_m1_challenger2_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/build
+.PHONY : megatron_m1_challenger2_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m2_challenger1_test
+
+# Build rule for target.
+megatron_m2_challenger1_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m2_challenger1_test
+.PHONY : megatron_m2_challenger1_test
+
+# fast build rule for target.
+megatron_m2_challenger1_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/build
+.PHONY : megatron_m2_challenger1_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m2_challenger2_test
+
+# Build rule for target.
+megatron_m2_challenger2_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m2_challenger2_test
+.PHONY : megatron_m2_challenger2_test
+
+# fast build rule for target.
+megatron_m2_challenger2_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/build
+.PHONY : megatron_m2_challenger2_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m3_test
+
+# Build rule for target.
+megatron_m3_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m3_test
+.PHONY : megatron_m3_test
+
+# fast build rule for target.
+megatron_m3_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/build
+.PHONY : megatron_m3_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_binder_stress_test
+
+# Build rule for target.
+megatron_binder_stress_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_binder_stress_test
+.PHONY : megatron_binder_stress_test
+
+# fast build rule for target.
+megatron_binder_stress_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_binder_stress_test.dir/build.make CMakeFiles/megatron_binder_stress_test.dir/build
+.PHONY : megatron_binder_stress_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m3_challenger2_test
+
+# Build rule for target.
+megatron_m3_challenger2_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m3_challenger2_test
+.PHONY : megatron_m3_challenger2_test
+
+# fast build rule for target.
+megatron_m3_challenger2_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/build
+.PHONY : megatron_m3_challenger2_test/fast
+
 src/benchmarks/benchmark_main.o: src/benchmarks/benchmark_main.cpp.o
 .PHONY : src/benchmarks/benchmark_main.o
 
@@ -204,6 +292,30 @@ src/benchmarks/benchmark_main.s: src/benchmarks/benchmark_main.cpp.s
 src/benchmarks/benchmark_main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_benchmark.dir/build.make CMakeFiles/megatron_benchmark.dir/src/benchmarks/benchmark_main.cpp.s
 .PHONY : src/benchmarks/benchmark_main.cpp.s
+
+src/benchmarks/binder_stress_test.o: src/benchmarks/binder_stress_test.cpp.o
+.PHONY : src/benchmarks/binder_stress_test.o
+
+# target to build an object file
+src/benchmarks/binder_stress_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_binder_stress_test.dir/build.make CMakeFiles/megatron_binder_stress_test.dir/src/benchmarks/binder_stress_test.cpp.o
+.PHONY : src/benchmarks/binder_stress_test.cpp.o
+
+src/benchmarks/binder_stress_test.i: src/benchmarks/binder_stress_test.cpp.i
+.PHONY : src/benchmarks/binder_stress_test.i
+
+# target to preprocess a source file
+src/benchmarks/binder_stress_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_binder_stress_test.dir/build.make CMakeFiles/megatron_binder_stress_test.dir/src/benchmarks/binder_stress_test.cpp.i
+.PHONY : src/benchmarks/binder_stress_test.cpp.i
+
+src/benchmarks/binder_stress_test.s: src/benchmarks/binder_stress_test.cpp.s
+.PHONY : src/benchmarks/binder_stress_test.s
+
+# target to generate assembly for a file
+src/benchmarks/binder_stress_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_binder_stress_test.dir/build.make CMakeFiles/megatron_binder_stress_test.dir/src/benchmarks/binder_stress_test.cpp.s
+.PHONY : src/benchmarks/binder_stress_test.cpp.s
 
 src/benchmarks/challenge_test.o: src/benchmarks/challenge_test.cpp.o
 .PHONY : src/benchmarks/challenge_test.o
@@ -253,6 +365,126 @@ src/benchmarks/execution_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_execution_test.dir/build.make CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.s
 .PHONY : src/benchmarks/execution_test.cpp.s
 
+src/benchmarks/m1_challenger2_test.o: src/benchmarks/m1_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m1_challenger2_test.o
+
+# target to build an object file
+src/benchmarks/m1_challenger2_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/src/benchmarks/m1_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m1_challenger2_test.cpp.o
+
+src/benchmarks/m1_challenger2_test.i: src/benchmarks/m1_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m1_challenger2_test.i
+
+# target to preprocess a source file
+src/benchmarks/m1_challenger2_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/src/benchmarks/m1_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m1_challenger2_test.cpp.i
+
+src/benchmarks/m1_challenger2_test.s: src/benchmarks/m1_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m1_challenger2_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m1_challenger2_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/src/benchmarks/m1_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m1_challenger2_test.cpp.s
+
+src/benchmarks/m2_challenger1_test.o: src/benchmarks/m2_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_challenger1_test.o
+
+# target to build an object file
+src/benchmarks/m2_challenger1_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/src/benchmarks/m2_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_challenger1_test.cpp.o
+
+src/benchmarks/m2_challenger1_test.i: src/benchmarks/m2_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_challenger1_test.i
+
+# target to preprocess a source file
+src/benchmarks/m2_challenger1_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/src/benchmarks/m2_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_challenger1_test.cpp.i
+
+src/benchmarks/m2_challenger1_test.s: src/benchmarks/m2_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_challenger1_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m2_challenger1_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/src/benchmarks/m2_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_challenger1_test.cpp.s
+
+src/benchmarks/m2_challenger2_test.o: src/benchmarks/m2_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m2_challenger2_test.o
+
+# target to build an object file
+src/benchmarks/m2_challenger2_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/src/benchmarks/m2_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m2_challenger2_test.cpp.o
+
+src/benchmarks/m2_challenger2_test.i: src/benchmarks/m2_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m2_challenger2_test.i
+
+# target to preprocess a source file
+src/benchmarks/m2_challenger2_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/src/benchmarks/m2_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m2_challenger2_test.cpp.i
+
+src/benchmarks/m2_challenger2_test.s: src/benchmarks/m2_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m2_challenger2_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m2_challenger2_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/src/benchmarks/m2_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m2_challenger2_test.cpp.s
+
+src/benchmarks/m3_binder_optimizer_test.o: src/benchmarks/m3_binder_optimizer_test.cpp.o
+.PHONY : src/benchmarks/m3_binder_optimizer_test.o
+
+# target to build an object file
+src/benchmarks/m3_binder_optimizer_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/src/benchmarks/m3_binder_optimizer_test.cpp.o
+.PHONY : src/benchmarks/m3_binder_optimizer_test.cpp.o
+
+src/benchmarks/m3_binder_optimizer_test.i: src/benchmarks/m3_binder_optimizer_test.cpp.i
+.PHONY : src/benchmarks/m3_binder_optimizer_test.i
+
+# target to preprocess a source file
+src/benchmarks/m3_binder_optimizer_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/src/benchmarks/m3_binder_optimizer_test.cpp.i
+.PHONY : src/benchmarks/m3_binder_optimizer_test.cpp.i
+
+src/benchmarks/m3_binder_optimizer_test.s: src/benchmarks/m3_binder_optimizer_test.cpp.s
+.PHONY : src/benchmarks/m3_binder_optimizer_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m3_binder_optimizer_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/src/benchmarks/m3_binder_optimizer_test.cpp.s
+.PHONY : src/benchmarks/m3_binder_optimizer_test.cpp.s
+
+src/benchmarks/m3_challenger2_test.o: src/benchmarks/m3_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m3_challenger2_test.o
+
+# target to build an object file
+src/benchmarks/m3_challenger2_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/src/benchmarks/m3_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m3_challenger2_test.cpp.o
+
+src/benchmarks/m3_challenger2_test.i: src/benchmarks/m3_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m3_challenger2_test.i
+
+# target to preprocess a source file
+src/benchmarks/m3_challenger2_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/src/benchmarks/m3_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m3_challenger2_test.cpp.i
+
+src/benchmarks/m3_challenger2_test.s: src/benchmarks/m3_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m3_challenger2_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m3_challenger2_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/src/benchmarks/m3_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m3_challenger2_test.cpp.s
+
 src/benchmarks/performance_tests.o: src/benchmarks/performance_tests.cpp.o
 .PHONY : src/benchmarks/performance_tests.o
 
@@ -276,6 +508,30 @@ src/benchmarks/performance_tests.s: src/benchmarks/performance_tests.cpp.s
 src/benchmarks/performance_tests.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.s
 .PHONY : src/benchmarks/performance_tests.cpp.s
+
+src/binder/binder.o: src/binder/binder.cpp.o
+.PHONY : src/binder/binder.o
+
+# target to build an object file
+src/binder/binder.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o
+.PHONY : src/binder/binder.cpp.o
+
+src/binder/binder.i: src/binder/binder.cpp.i
+.PHONY : src/binder/binder.i
+
+# target to preprocess a source file
+src/binder/binder.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/binder/binder.cpp.i
+.PHONY : src/binder/binder.cpp.i
+
+src/binder/binder.s: src/binder/binder.cpp.s
+.PHONY : src/binder/binder.s
+
+# target to generate assembly for a file
+src/binder/binder.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/binder/binder.cpp.s
+.PHONY : src/binder/binder.cpp.s
 
 src/catalog/catalog.o: src/catalog/catalog.cpp.o
 .PHONY : src/catalog/catalog.o
@@ -372,6 +628,30 @@ src/main.s: src/main.cpp.s
 src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron.dir/build.make CMakeFiles/megatron.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
+
+src/optimizer/optimizer.o: src/optimizer/optimizer.cpp.o
+.PHONY : src/optimizer/optimizer.o
+
+# target to build an object file
+src/optimizer/optimizer.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o
+.PHONY : src/optimizer/optimizer.cpp.o
+
+src/optimizer/optimizer.i: src/optimizer/optimizer.cpp.i
+.PHONY : src/optimizer/optimizer.i
+
+# target to preprocess a source file
+src/optimizer/optimizer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.i
+.PHONY : src/optimizer/optimizer.cpp.i
+
+src/optimizer/optimizer.s: src/optimizer/optimizer.cpp.s
+.PHONY : src/optimizer/optimizer.s
+
+# target to generate assembly for a file
+src/optimizer/optimizer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_core.dir/build.make CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.s
+.PHONY : src/optimizer/optimizer.cpp.s
 
 src/parser/lexer.o: src/parser/lexer.cpp.o
 .PHONY : src/parser/lexer.o
@@ -693,23 +973,51 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
+	@echo "... test"
 	@echo "... megatron"
 	@echo "... megatron_benchmark"
+	@echo "... megatron_binder_stress_test"
 	@echo "... megatron_challenge_test"
 	@echo "... megatron_core"
 	@echo "... megatron_execution_test"
+	@echo "... megatron_m1_challenger2_test"
+	@echo "... megatron_m2_challenger1_test"
+	@echo "... megatron_m2_challenger2_test"
+	@echo "... megatron_m3_challenger2_test"
+	@echo "... megatron_m3_test"
 	@echo "... src/benchmarks/benchmark_main.o"
 	@echo "... src/benchmarks/benchmark_main.i"
 	@echo "... src/benchmarks/benchmark_main.s"
+	@echo "... src/benchmarks/binder_stress_test.o"
+	@echo "... src/benchmarks/binder_stress_test.i"
+	@echo "... src/benchmarks/binder_stress_test.s"
 	@echo "... src/benchmarks/challenge_test.o"
 	@echo "... src/benchmarks/challenge_test.i"
 	@echo "... src/benchmarks/challenge_test.s"
 	@echo "... src/benchmarks/execution_test.o"
 	@echo "... src/benchmarks/execution_test.i"
 	@echo "... src/benchmarks/execution_test.s"
+	@echo "... src/benchmarks/m1_challenger2_test.o"
+	@echo "... src/benchmarks/m1_challenger2_test.i"
+	@echo "... src/benchmarks/m1_challenger2_test.s"
+	@echo "... src/benchmarks/m2_challenger1_test.o"
+	@echo "... src/benchmarks/m2_challenger1_test.i"
+	@echo "... src/benchmarks/m2_challenger1_test.s"
+	@echo "... src/benchmarks/m2_challenger2_test.o"
+	@echo "... src/benchmarks/m2_challenger2_test.i"
+	@echo "... src/benchmarks/m2_challenger2_test.s"
+	@echo "... src/benchmarks/m3_binder_optimizer_test.o"
+	@echo "... src/benchmarks/m3_binder_optimizer_test.i"
+	@echo "... src/benchmarks/m3_binder_optimizer_test.s"
+	@echo "... src/benchmarks/m3_challenger2_test.o"
+	@echo "... src/benchmarks/m3_challenger2_test.i"
+	@echo "... src/benchmarks/m3_challenger2_test.s"
 	@echo "... src/benchmarks/performance_tests.o"
 	@echo "... src/benchmarks/performance_tests.i"
 	@echo "... src/benchmarks/performance_tests.s"
+	@echo "... src/binder/binder.o"
+	@echo "... src/binder/binder.i"
+	@echo "... src/binder/binder.s"
 	@echo "... src/catalog/catalog.o"
 	@echo "... src/catalog/catalog.i"
 	@echo "... src/catalog/catalog.s"
@@ -722,6 +1030,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/optimizer/optimizer.o"
+	@echo "... src/optimizer/optimizer.i"
+	@echo "... src/optimizer/optimizer.s"
 	@echo "... src/parser/lexer.o"
 	@echo "... src/parser/lexer.i"
 	@echo "... src/parser/lexer.s"

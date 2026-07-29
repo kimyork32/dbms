@@ -255,6 +255,7 @@ megatron_benchmark: /lib64/ld-linux-x86-64.so.2 \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc.a \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so \
   /usr/lib/gcc/x86_64-linux-gnu/15/libstdc++.so \
+  /usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so \
   /usr/lib/x86_64-linux-gnu/libc.so.6 \
   /usr/lib/x86_64-linux-gnu/libc_nonshared.a \
   /usr/lib/x86_64-linux-gnu/libm.so.6 \
@@ -313,8 +314,6 @@ CMakeFiles/megatron_benchmark.dir/src/benchmarks/benchmark_main.cpp.o:
 
 /usr/include/c++/15/bits/stl_algobase.h:
 
-/usr/include/c++/15/cctype:
-
 /usr/include/c++/15/cerrno:
 
 /usr/lib/x86_64-linux-gnu/libc.so:
@@ -363,6 +362,10 @@ CMakeFiles/megatron_benchmark.dir/src/benchmarks/benchmark_main.cpp.o:
 
 /home/rsk/projects/db/dbms/include/storage/record/type_id.hpp:
 
+/usr/include/c++/15/cctype:
+
+/usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so:
+
 /usr/include/c++/15/bits/stl_pair.h:
 
 /usr/include/c++/15/bits/stl_bvector.h:
@@ -386,6 +389,10 @@ CMakeFiles/megatron_benchmark.dir/src/benchmarks/benchmark_main.cpp.o:
 /usr/include/x86_64-linux-gnu/c++/15/bits/gthr.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__FILE.h:
+
+/usr/lib/x86_64-linux-gnu/libmvec.so.1:
+
+/usr/include/c++/15/bits/stl_iterator_base_types.h:
 
 /usr/include/x86_64-linux-gnu/sys/single_threaded.h:
 
@@ -552,10 +559,6 @@ libmegatron_core.a:
 /usr/include/x86_64-linux-gnu/bits/long-double.h:
 
 /usr/include/c++/15/bits/ostream.h:
-
-/usr/include/c++/15/bits/stl_iterator_base_types.h:
-
-/usr/lib/x86_64-linux-gnu/libmvec.so.1:
 
 /usr/include/c++/15/bits/ostream.tcc:
 

@@ -12,6 +12,7 @@ megatron_benchmark: \
   /usr/lib/gcc/x86_64-linux-gnu/15/../../../x86_64-linux-gnu/libm.so \
   /usr/lib/x86_64-linux-gnu/libm.so.6 \
   /usr/lib/x86_64-linux-gnu/libmvec.so.1 \
+  /usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so \
@@ -59,6 +60,8 @@ libmegatron_core.a:
 /usr/lib/x86_64-linux-gnu/libm.so.6:
 
 /usr/lib/x86_64-linux-gnu/libmvec.so.1:
+
+/usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so:
 
 /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so:
 

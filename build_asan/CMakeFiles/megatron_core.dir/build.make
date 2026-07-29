@@ -296,10 +296,38 @@ CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rsk/projects/db/dbms/src/execution/query_executor.cpp -o CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.s
 
+CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o: CMakeFiles/megatron_core.dir/flags.make
+CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o: /home/rsk/projects/db/dbms/src/binder/binder.cpp
+CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o: CMakeFiles/megatron_core.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o -MF CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o.d -o CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o -c /home/rsk/projects/db/dbms/src/binder/binder.cpp
+
+CMakeFiles/megatron_core.dir/src/binder/binder.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/megatron_core.dir/src/binder/binder.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rsk/projects/db/dbms/src/binder/binder.cpp > CMakeFiles/megatron_core.dir/src/binder/binder.cpp.i
+
+CMakeFiles/megatron_core.dir/src/binder/binder.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/megatron_core.dir/src/binder/binder.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rsk/projects/db/dbms/src/binder/binder.cpp -o CMakeFiles/megatron_core.dir/src/binder/binder.cpp.s
+
+CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o: CMakeFiles/megatron_core.dir/flags.make
+CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o: /home/rsk/projects/db/dbms/src/optimizer/optimizer.cpp
+CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o: CMakeFiles/megatron_core.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o -MF CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o.d -o CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o -c /home/rsk/projects/db/dbms/src/optimizer/optimizer.cpp
+
+CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rsk/projects/db/dbms/src/optimizer/optimizer.cpp > CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.i
+
+CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rsk/projects/db/dbms/src/optimizer/optimizer.cpp -o CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.s
+
 CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o: CMakeFiles/megatron_core.dir/flags.make
 CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o: /home/rsk/projects/db/dbms/src/benchmarks/performance_tests.cpp
 CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o: CMakeFiles/megatron_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o -MF CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o.d -o CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o -c /home/rsk/projects/db/dbms/src/benchmarks/performance_tests.cpp
 
 CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.i: cmake_force
@@ -328,6 +356,8 @@ megatron_core_OBJECTS = \
 "CMakeFiles/megatron_core.dir/src/storage/engine/disk_storage_engine.cpp.o" \
 "CMakeFiles/megatron_core.dir/src/execution/executor.cpp.o" \
 "CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.o" \
+"CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o" \
+"CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o" \
 "CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o"
 
 # External object files for target megatron_core
@@ -349,10 +379,12 @@ libmegatron_core.a: CMakeFiles/megatron_core.dir/src/storage/index/linear_hash.c
 libmegatron_core.a: CMakeFiles/megatron_core.dir/src/storage/engine/disk_storage_engine.cpp.o
 libmegatron_core.a: CMakeFiles/megatron_core.dir/src/execution/executor.cpp.o
 libmegatron_core.a: CMakeFiles/megatron_core.dir/src/execution/query_executor.cpp.o
+libmegatron_core.a: CMakeFiles/megatron_core.dir/src/binder/binder.cpp.o
+libmegatron_core.a: CMakeFiles/megatron_core.dir/src/optimizer/optimizer.cpp.o
 libmegatron_core.a: CMakeFiles/megatron_core.dir/src/benchmarks/performance_tests.cpp.o
 libmegatron_core.a: CMakeFiles/megatron_core.dir/build.make
 libmegatron_core.a: CMakeFiles/megatron_core.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Linking CXX static library libmegatron_core.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Linking CXX static library libmegatron_core.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/megatron_core.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/megatron_core.dir/link.txt --verbose=$(VERBOSE)
 

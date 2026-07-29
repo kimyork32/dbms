@@ -1,7 +1,9 @@
-/build
+/build*/
 *.db
 *.bd
 *.text
 compile_commands.json
 .cache/
 docs/
+.agents/
+idx_*
