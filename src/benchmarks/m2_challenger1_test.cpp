@@ -266,6 +266,221 @@ void TestHashJoinHintPropagation() {
     unlink("tbl_hj_new2.bd");
 }
 
+// -----------------------------------------------------------------------------
+// Test 4: Optimizer Hint Injection Rules (HashJoin, SeqScan, NestedLoopJoin)
+// -----------------------------------------------------------------------------
+#include "optimizer/optimizer.hpp"
+#include "binder/binder.hpp"
+#include "catalog/catalog.hpp"
+
+void TestOptimizerHintInjectionRules() {
+    std::cout << "--- 4. Testing Optimizer Hint Injection Rules ---" << std::endl;
+
+    Catalog catalog;
+    Schema user_schema;
+    user_schema.AddColumn("id", TypeId::INTEGER);
+    user_schema.AddColumn("name", TypeId::VARCHAR);
+    catalog.CreateTable("users", user_schema);
+
+    Schema orders_schema;
+    orders_schema.AddColumn("order_id", TypeId::INTEGER);
+    orders_schema.AddColumn("user_id", TypeId::INTEGER);
+    catalog.CreateTable("orders", orders_schema);
+
+    Schema cat_schema;
+    cat_schema.AddColumn("sys_id", TypeId::INTEGER);
+    cat_schema.AddColumn("sys_name", TypeId::VARCHAR);
+    catalog.CreateTable("catalog", cat_schema);
+    catalog.CreateTable("__catalog", cat_schema);
+    catalog.CreateTable("system_tables", cat_schema);
+
+    Optimizer optimizer(catalog);
+
+    // 4a. Standalone SeqScan on Normal Table -> DISCARD_QUICKLY
+    {
+        auto scan_normal = std::make_shared<SeqScanPlanNode>(user_schema, "users", catalog.GetTable("users"), BufferHint::DEFAULT);
+        std::shared_ptr<AbstractPlanNode> plan = scan_normal;
+        optimizer.InjectBufferHints(plan);
+        ASSERT_EQ(plan->GetBufferHint(), BufferHint::DISCARD_QUICKLY, "Standalone SeqScan on normal table gets DISCARD_QUICKLY");
+    }
+
+    // 4b. Standalone SeqScan on Catalog Tables -> KEEP_HOT
+    {
+        for (const std::string& cat_tbl : {"catalog", "__catalog", "system_tables"}) {
+            auto scan_cat = std::make_shared<SeqScanPlanNode>(cat_schema, cat_tbl, catalog.GetTable(cat_tbl), BufferHint::DEFAULT);
+            std::shared_ptr<AbstractPlanNode> plan = scan_cat;
+            optimizer.InjectBufferHints(plan);
+            ASSERT_EQ(plan->GetBufferHint(), BufferHint::KEEP_HOT, "Standalone SeqScan on catalog table gets KEEP_HOT");
+        }
+    }
+
+    // 4c. HashJoin: Left child (build) KEEP_HOT, Right child (probe) DISCARD_QUICKLY
+    {
+        auto left_scan = std::make_shared<SeqScanPlanNode>(user_schema, "users", catalog.GetTable("users"), BufferHint::DEFAULT);
+        auto right_scan = std::make_shared<SeqScanPlanNode>(orders_schema, "orders", catalog.GetTable("orders"), BufferHint::DEFAULT);
+        
+        Schema hj_schema;
+        hj_schema.AddColumn("id", TypeId::INTEGER);
+        hj_schema.AddColumn("name", TypeId::VARCHAR);
+        hj_schema.AddColumn("order_id", TypeId::INTEGER);
+        hj_schema.AddColumn("user_id", TypeId::INTEGER);
+
+        auto hj_node = std::make_shared<HashJoinPlanNode>(hj_schema, left_scan, right_scan, 0, 1, BufferHint::DEFAULT);
+        std::shared_ptr<AbstractPlanNode> plan = hj_node;
+        optimizer.InjectBufferHints(plan);
+
+        ASSERT_EQ(plan->GetBufferHint(), BufferHint::DEFAULT, "HashJoin root has DEFAULT hint");
+        ASSERT_TRUE(plan->GetChildren().size() == 2, "HashJoin has 2 children");
+        ASSERT_EQ(plan->GetChildAt(0)->GetBufferHint(), BufferHint::KEEP_HOT, "HashJoin left child (build) gets KEEP_HOT");
+        ASSERT_EQ(plan->GetChildAt(1)->GetBufferHint(), BufferHint::DISCARD_QUICKLY, "HashJoin right child (probe) gets DISCARD_QUICKLY");
+    }
+
+    // 4d. NestedLoopJoin: Left child (outer) DISCARD_QUICKLY, Right child (inner) KEEP_HOT
+    {
+        auto outer_scan = std::make_shared<SeqScanPlanNode>(user_schema, "users", catalog.GetTable("users"), BufferHint::DEFAULT);
+        auto inner_scan = std::make_shared<SeqScanPlanNode>(orders_schema, "orders", catalog.GetTable("orders"), BufferHint::DEFAULT);
+
+        Schema nlj_schema;
+        nlj_schema.AddColumn("id", TypeId::INTEGER);
+        nlj_schema.AddColumn("name", TypeId::VARCHAR);
+        nlj_schema.AddColumn("order_id", TypeId::INTEGER);
+        nlj_schema.AddColumn("user_id", TypeId::INTEGER);
+
+        auto nlj_node = std::make_shared<NestedLoopJoinPlanNode>(nlj_schema, outer_scan, inner_scan, nullptr, BufferHint::DEFAULT);
+        std::shared_ptr<AbstractPlanNode> plan = nlj_node;
+        optimizer.InjectBufferHints(plan);
+
+        ASSERT_EQ(plan->GetBufferHint(), BufferHint::DEFAULT, "NestedLoopJoin root has DEFAULT hint");
+        ASSERT_TRUE(plan->GetChildren().size() == 2, "NestedLoopJoin has 2 children");
+        ASSERT_EQ(plan->GetChildAt(0)->GetBufferHint(), BufferHint::DISCARD_QUICKLY, "NestedLoopJoin left child (outer) gets DISCARD_QUICKLY");
+        ASSERT_EQ(plan->GetChildAt(1)->GetBufferHint(), BufferHint::KEEP_HOT, "NestedLoopJoin right child (inner) gets KEEP_HOT");
+    }
+
+    // 4e. Nested subtrees under HashJoin and NestedLoopJoin
+    {
+        // Projection wrapping SeqScan on left child, Filter wrapping SeqScan on right child
+        auto left_scan = std::make_shared<SeqScanPlanNode>(user_schema, "users", catalog.GetTable("users"), BufferHint::DEFAULT);
+        auto proj_left = std::make_shared<ProjectionPlanNode>(user_schema, left_scan, std::vector<size_t>{0, 1}, BufferHint::DEFAULT);
+
+        auto right_scan = std::make_shared<SeqScanPlanNode>(orders_schema, "orders", catalog.GetTable("orders"), BufferHint::DEFAULT);
+        auto filter_right = std::make_shared<FilterPlanNode>(orders_schema, right_scan, [](const Tuple&){ return true; }, BufferHint::DEFAULT);
+
+        Schema hj_schema;
+        hj_schema.AddColumn("id", TypeId::INTEGER);
+        hj_schema.AddColumn("name", TypeId::VARCHAR);
+        hj_schema.AddColumn("order_id", TypeId::INTEGER);
+        hj_schema.AddColumn("user_id", TypeId::INTEGER);
+
+        auto hj_node = std::make_shared<HashJoinPlanNode>(hj_schema, proj_left, filter_right, 0, 1, BufferHint::DEFAULT);
+        std::shared_ptr<AbstractPlanNode> plan = hj_node;
+        optimizer.InjectBufferHints(plan);
+
+        ASSERT_EQ(plan->GetChildAt(0)->GetBufferHint(), BufferHint::KEEP_HOT, "Left subtree root gets KEEP_HOT");
+        ASSERT_EQ(plan->GetChildAt(0)->GetChildAt(0)->GetBufferHint(), BufferHint::KEEP_HOT, "Left subtree descendant gets KEEP_HOT");
+        ASSERT_EQ(plan->GetChildAt(1)->GetBufferHint(), BufferHint::DISCARD_QUICKLY, "Right subtree root gets DISCARD_QUICKLY");
+        ASSERT_EQ(plan->GetChildAt(1)->GetChildAt(0)->GetBufferHint(), BufferHint::DISCARD_QUICKLY, "Right subtree descendant gets DISCARD_QUICKLY");
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Test 5: Full Query Optimizer Pipeline (Binder -> Optimizer::Optimize)
+// -----------------------------------------------------------------------------
+void TestFullQueryOptimizerHintInjection() {
+    std::cout << "--- 5. Testing Full Query Optimizer Pipeline (Binder + Optimizer) ---" << std::endl;
+
+    Catalog catalog;
+    Schema users_schema;
+    users_schema.AddColumn("id", TypeId::INTEGER);
+    users_schema.AddColumn("name", TypeId::VARCHAR);
+    catalog.CreateTable("users", users_schema);
+
+    Schema orders_schema;
+    orders_schema.AddColumn("order_id", TypeId::INTEGER);
+    orders_schema.AddColumn("user_id", TypeId::INTEGER);
+    catalog.CreateTable("orders", orders_schema);
+
+    Schema cat_schema;
+    cat_schema.AddColumn("sys_id", TypeId::INTEGER);
+    cat_schema.AddColumn("sys_name", TypeId::VARCHAR);
+    catalog.CreateTable("catalog", cat_schema);
+
+    Binder binder(catalog);
+    Optimizer optimizer(catalog);
+
+    // 5a. Standalone normal table query
+    {
+        SelectStatement stmt;
+        stmt.table_name = "users";
+        stmt.select_all = true;
+
+        auto bound = binder.BindSelect(stmt);
+        auto plan = optimizer.Optimize(*bound);
+        ASSERT_TRUE(plan != nullptr, "Plan generated for SELECT * FROM users");
+
+        // Traverse down to SeqScan node
+        const AbstractPlanNode* scan_node = plan.get();
+        while (scan_node->GetChildren().size() > 0 && scan_node->GetType() != PlanType::SeqScan) {
+            scan_node = scan_node->GetChildAt(0);
+        }
+        ASSERT_EQ(static_cast<int>(scan_node->GetType()), static_cast<int>(PlanType::SeqScan), "Found SeqScan node");
+        ASSERT_EQ(static_cast<int>(scan_node->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Normal table SeqScan carries DISCARD_QUICKLY hint");
+    }
+
+    // 5b. Standalone catalog table query
+    {
+        SelectStatement stmt;
+        stmt.table_name = "catalog";
+        stmt.select_all = true;
+
+        auto bound = binder.BindSelect(stmt);
+        auto plan = optimizer.Optimize(*bound);
+        ASSERT_TRUE(plan != nullptr, "Plan generated for SELECT * FROM catalog");
+
+        const AbstractPlanNode* scan_node = plan.get();
+        while (scan_node->GetChildren().size() > 0 && scan_node->GetType() != PlanType::SeqScan) {
+            scan_node = scan_node->GetChildAt(0);
+        }
+        ASSERT_EQ(static_cast<int>(scan_node->GetType()), static_cast<int>(PlanType::SeqScan), "Found catalog SeqScan node");
+        ASSERT_EQ(static_cast<int>(scan_node->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "Catalog table SeqScan carries KEEP_HOT hint");
+    }
+
+    // 5c. Join Query (HashJoin)
+    {
+        SelectStatement stmt;
+        auto join_ref = std::make_unique<JoinTableRef>(
+            std::make_unique<BaseTableRef>("users"),
+            std::make_unique<BaseTableRef>("orders"),
+            "INNER",
+            std::make_unique<BinaryOpExpression>(
+                "=",
+                std::make_unique<ColumnRefExpression>("users", "id"),
+                std::make_unique<ColumnRefExpression>("orders", "user_id")
+            )
+        );
+        stmt.from_table = std::move(join_ref);
+        stmt.select_all = true;
+
+        auto bound = binder.BindSelect(stmt);
+        auto plan = optimizer.Optimize(*bound);
+        ASSERT_TRUE(plan != nullptr, "Plan generated for HashJoin query");
+
+        const AbstractPlanNode* hj_node = plan.get();
+        while (hj_node->GetChildren().size() > 0 && hj_node->GetType() != PlanType::HashJoin) {
+            hj_node = hj_node->GetChildAt(0);
+        }
+        ASSERT_EQ(static_cast<int>(hj_node->GetType()), static_cast<int>(PlanType::HashJoin), "Found HashJoin node");
+
+        const AbstractPlanNode* left_child = hj_node->GetChildAt(0);
+        const AbstractPlanNode* right_child = hj_node->GetChildAt(1);
+
+        ASSERT_TRUE(left_child != nullptr, "Left child exists");
+        ASSERT_TRUE(right_child != nullptr, "Right child exists");
+
+        ASSERT_EQ(static_cast<int>(left_child->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "HashJoin build side carries KEEP_HOT hint");
+        ASSERT_EQ(static_cast<int>(right_child->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "HashJoin probe side carries DISCARD_QUICKLY hint");
+    }
+}
+
 int main() {
     std::cout << "========================================================\n";
     std::cout << "   M2 Challenger 1 Empirical Verification Test Suite    \n";
@@ -274,6 +489,8 @@ int main() {
     TestSeqScanHintPropagation();
     TestIndexScanHintPropagation();
     TestHashJoinHintPropagation();
+    TestOptimizerHintInjectionRules();
+    TestFullQueryOptimizerHintInjection();
 
     std::cout << "========================================================\n";
     std::cout << " Summary: " << g_passed << " PASSED, " << g_failed << " FAILED\n";
@@ -281,3 +498,5 @@ int main() {
 
     return (g_failed == 0) ? 0 : 1;
 }
+
+

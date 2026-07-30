@@ -1,68 +1,51 @@
-# Project: Plan-Aware DBMS
+# Project: Operator-Aware Buffer Management for DBMS
 
 ## Architecture
-The Plan-Aware DBMS introduces query-plan-driven buffer management hints (`BufferHint`) into a relational DBMS engine.
-Query execution flow:
-```
-[ SQL Query String ]
-        │
-        ▼ Parser
-  [ AST (SelectStatement) ]
-        │
-        ▼ Binder (Validates against Catalog tables & schemas)
-  [ BoundSelectStatement ]
-        │
-        ▼ Optimizer (Injects BufferHint: DISCARD_QUICKLY, KEEP_HOT, DEFAULT)
-  [ Physical Plan Tree (AbstractPlanNode) ]
-        │
-        ▼ Volcano Executor (AbstractExecutor)
-  [ Access Methods (DiskStorageEngine / B+ Tree / Hash Index) ]
-        │
-        ▼ Propagates BufferHint to FetchPage / NewPage
-  [ GlobalBufferPoolManager ] (Enforces 4-tier frame eviction: DISCARD_QUICKLY first, KEEP_HOT protected)
-```
+- **Buffer Pool Management**: `GlobalBufferPoolManager` handles page fetch, pin/unpin, 4-tier clock-sweep frame eviction based on `BufferHint` (`DEFAULT`, `KEEP_HOT`, `DISCARD_QUICKLY`), and metrics collection (`page_hits_`, `page_misses_`, `disk_writes_`).
+- **Optimizer**: `Optimizer::InjectBufferHints` analyzes physical plan nodes and injects buffer access hints down plan subtrees before execution.
+- **Executors**: Volcano iterator model (`AbstractExecutor`) with `Init()` and `Next()`. `NestedLoopJoinExecutor` performs outer/inner loop iteration, with inner child rescan resetting inner executor. `SeqScanExecutor` clears cached tuples on `Init()` when `bpm_ != nullptr` to enforce hint-based page re-fetching.
+- **Benchmarks**: Synthetic workload generator and execution harness running Nested Loop Join, Hash Join, and Concurrent SeqScan + Join queries across 10%, 25%, 50%, and 80% buffer pool capacities, printing ASCII comparative performance tables.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | BufferHint Enum | Define `BufferHint` enum (`DEFAULT`, `DISCARD_QUICKLY`, `KEEP_HOT`) | M1 | survey |
-| 2 | AbstractPlanNode Hint Support | Add `BufferHint` member and getters/setters to `AbstractPlanNode` | M1 | survey |
-| 3 | Hint-Aware GlobalBufferPoolManager | Update `FetchPage`/`NewPage` signatures and implement 4-tier frame eviction (`DISCARD_QUICKLY` first, `KEEP_HOT` protected) | M1 | survey |
-| 4 | AbstractExecutor Hint Extraction | Add `GetBufferHint()` helper to `AbstractExecutor` | M2 | survey |
-| 5 | IndexScanPlanNode & IndexScanExecutor | Implement missing `IndexScanPlanNode` and `IndexScanExecutor` | M2 | survey |
-| 6 | Access Method Hint Propagation | Propagate `BufferHint` through `SeqScan`, `B+ Tree`, `Hash Index`, and `IndexScan` access methods to `GlobalBufferPoolManager` | M2 | survey |
-| 7 | Binder Implementation | Implement `Binder` for catalog table/column AST validation and schema resolution | M3 | survey |
-| 8 | Optimizer & Smart Hint Injection | Implement `Optimizer` translating bound AST into physical plan nodes with intelligent `BufferHint` injection | M3 | survey |
-| 9 | Automated C++ Test Suite | Implement `src/test_plan_aware.cpp` verifying replacement behavior, hint propagation, and optimizer injection | M4 | survey |
-| 10 | CMake Integration | Update `CMakeLists.txt` to build `megatron_plan_aware_test` executable | M4 | survey |
+| 1 | GlobalBufferPoolManager Metrics (R3) | Instrument `page_hits_`, `page_misses_`, `disk_writes_`, `GetMissRatio()`, `GetDiskIOCount()`, `ResetMetrics()`, and parameterize `DiskStorageEngine(pool_size)`. | M1 | ORIGINAL_REQUEST.md / docs |
+| 2 | Optimizer Hint Injection Rules Fix (R2) | Fix `HashJoin` build side hint (`KEEP_HOT`), standalone `SeqScan` hint (`DISCARD_QUICKLY`), and verify `NestedLoopJoin` hints. | M2 | ORIGINAL_REQUEST.md / docs |
+| 3 | NestedLoopJoinExecutor & Rescan Fix (R1 & R4) | Implement `NestedLoopJoinExecutor` in `executor.hpp`/`executor.cpp` and fix `SeqScanExecutor::Init()` to clear `tuples_` on `bpm_ != nullptr`. | M3 | ORIGINAL_REQUEST.md / docs |
+| 4 | Operator-Aware Benchmark Workloads (R5) | Build synthetic table generator and benchmark harness testing NLJ, HashJoin, and Concurrent workloads across 10%, 25%, 50%, 80% pool sizes, printing comparison tables. | M4 | ORIGINAL_REQUEST.md / docs |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: BufferHint & Buffer Manager | Add `BufferHint` to `AbstractPlanNode`, update `GlobalBufferPoolManager` `FetchPage`/`NewPage` signatures and 4-tier hint-aware replacement logic | none | DONE |
-| 2 | M2: Executor & Access Method Propagation | Add `GetBufferHint()` to `AbstractExecutor`, implement `IndexScanPlanNode`/`Executor`, propagate hints in `SeqScan`, `B+Tree`, `Hash`, and `IndexScan` access methods | M1 | DONE |
-| 3 | M3: Binder & Optimizer | Implement `Binder` for AST vs Catalog validation, implement `Optimizer` for physical plan translation with smart hint injection | M1, M2 | DONE |
-| 4 | M4: Integration Test Suite & CMake | Create `src/test_plan_aware.cpp` verifying hint replacement priorities, hint propagation, and optimizer injection; update `CMakeLists.txt` | M1, M2, M3 | IN_PROGRESS |
+| M1 | Buffer Pool Manager Metrics & Parameterized Storage Engine | `include/storage/page/buffer_pool_manager.hpp`, `src/storage/page/buffer_pool_manager.cpp`, `include/storage/engine/disk_storage_engine.hpp`, `src/storage/engine/disk_storage_engine.cpp` | none | DONE |
+| M2 | Optimizer Hint Injection Rules Fix | `src/optimizer/optimizer.cpp` | M1 | DONE |
+| M3 | NestedLoopJoinExecutor & SeqScan Rescan Fix | `include/execution/executor.hpp`, `src/execution/executor.cpp` | M1, M2 | DONE |
+| M4 | Benchmark Workloads & Synthetic Data Generator | `src/benchmarks/operator_aware_benchmark.cpp`, `CMakeLists.txt` | M1, M2, M3 | DONE |
 
 ## Interface Contracts
-### AbstractPlanNode ↔ GlobalBufferPoolManager
-- `enum class BufferHint { DEFAULT = 0, KEEP_HOT, DISCARD_QUICKLY };`
-- `SlottedPage* FetchPage(const std::string& table_name, uint32_t page_id, BufferHint hint = BufferHint::DEFAULT);`
-- `SlottedPage* NewPage(const std::string& table_name, uint32_t* page_id, BufferHint hint = BufferHint::DEFAULT);`
+### GlobalBufferPoolManager Interface
+- `void ResetMetrics()`: Resets `page_hits_`, `page_misses_`, `disk_writes_` to 0.
+- `size_t GetPageHits() const`: Returns total page hit count.
+- `size_t GetPageMisses() const`: Returns total page miss count.
+- `size_t GetDiskWrites() const`: Returns total disk write count.
+- `size_t GetDiskIOCount() const`: Returns `page_misses_ + disk_writes_`.
+- `double GetMissRatio() const`: Returns `page_misses_ / (page_hits_ + page_misses_)` (0.0 if total fetches == 0).
 
-### Binder ↔ Catalog
-- `const TableMetadata* Catalog::GetTable(const std::string& table_name) const;`
-- `int Schema::GetColIdx(const std::string& name) const;`
+### Optimizer Buffer Hint Rules
+- `PlanType::HashJoin`: `left_child` (build side) -> `BufferHint::KEEP_HOT`, `right_child` (probe side) -> `BufferHint::DISCARD_QUICKLY`.
+- `PlanType::SeqScan`: Standalone catalog table -> `BufferHint::KEEP_HOT`, standalone normal table -> `BufferHint::DISCARD_QUICKLY`.
+- `PlanType::NestedLoopJoin`: `left_child` (outer loop) -> `BufferHint::DISCARD_QUICKLY`, `right_child` (inner loop) -> `BufferHint::KEEP_HOT`.
 
-### Optimizer ↔ Physical Plan
-- `std::shared_ptr<AbstractPlanNode> Optimizer::Optimize(const BoundSelectStatement& stmt);`
+### NestedLoopJoinExecutor Interface
+- Header: `include/execution/executor.hpp`
+- Class: `class NestedLoopJoinExecutor : public AbstractExecutor`
+- Constructor: `NestedLoopJoinExecutor(ExecutorContext *exec_ctx, const NestedLoopJoinPlanNode *plan, std::unique_ptr<AbstractExecutor> &&left_child, std::unique_ptr<AbstractExecutor> &&right_child)`
+- Methods: `void Init() override`, `bool Next(Tuple *tuple, RID *rid) override`, `const Schema *GetOutputSchema() const override`.
 
 ## Code Layout
 - `include/storage/page/buffer_pool_manager.hpp` & `src/storage/page/buffer_pool_manager.cpp`
-- `include/execution/plan_node.hpp` & `src/execution/plan_node.cpp`
-- `include/execution/executor.hpp` & `src/execution/executor.cpp`
 - `include/storage/engine/disk_storage_engine.hpp` & `src/storage/engine/disk_storage_engine.cpp`
-- `include/storage/index/b_plus_tree.hpp` & `src/storage/index/b_plus_tree.cpp`
-- `include/binder/binder.hpp`, `include/binder/bound_statement.hpp` & `src/binder/binder.cpp`
-- `include/optimizer/optimizer.hpp` & `src/optimizer/optimizer.cpp`
-- `src/test_plan_aware.cpp` & `CMakeLists.txt`
+- `src/optimizer/optimizer.cpp`
+- `include/execution/executor.hpp` & `src/execution/executor.cpp`
+- `src/benchmarks/operator_aware_benchmark.cpp`
+- `CMakeLists.txt`

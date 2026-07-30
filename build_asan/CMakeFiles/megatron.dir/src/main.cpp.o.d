@@ -187,7 +187,9 @@ CMakeFiles/megatron.dir/src/main.cpp.o: \
  /usr/include/c++/15/limits /usr/include/c++/15/ctime \
  /usr/include/c++/15/bits/parse_numbers.h \
  /usr/include/c++/15/bits/std_mutex.h \
- /usr/include/c++/15/bits/unique_lock.h \
+ /usr/include/c++/15/bits/unique_lock.h /usr/include/c++/15/atomic \
+ /usr/include/c++/15/bits/atomic_base.h \
+ /usr/include/c++/15/bits/atomic_lockfree_defines.h \
  /home/rsk/projects/db/dbms/include/storage/page/slotted_page.hpp \
  /home/rsk/projects/db/dbms/include/storage/page/page_header.hpp \
  /home/rsk/projects/db/dbms/include/storage/record/schema.hpp \

@@ -245,7 +245,6 @@ megatron_challenge_test: /lib64/ld-linux-x86-64.so.2 \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc.a \
   /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so \
   /usr/lib/gcc/x86_64-linux-gnu/15/libstdc++.so \
-  /usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so \
   /usr/lib/x86_64-linux-gnu/libc.so.6 \
   /usr/lib/x86_64-linux-gnu/libc_nonshared.a \
   /usr/lib/x86_64-linux-gnu/libm.so.6 \
@@ -397,8 +396,6 @@ CMakeFiles/megatron_challenge_test.dir/src/benchmarks/challenge_test.cpp.o:
 /usr/include/features.h:
 
 /usr/include/features-time64.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so:
 
 /usr/include/errno.h:
 

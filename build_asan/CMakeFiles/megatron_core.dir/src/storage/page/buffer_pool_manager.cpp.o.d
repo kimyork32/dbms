@@ -165,6 +165,8 @@ CMakeFiles/megatron_core.dir/src/storage/page/buffer_pool_manager.cpp.o: \
  /usr/include/c++/15/ext/atomicity.h \
  /usr/include/x86_64-linux-gnu/c++/15/bits/atomic_word.h \
  /usr/include/x86_64-linux-gnu/sys/single_threaded.h \
+ /usr/include/c++/15/atomic /usr/include/c++/15/bits/atomic_base.h \
+ /usr/include/c++/15/bits/atomic_lockfree_defines.h \
  /home/rsk/projects/db/dbms/include/storage/page/slotted_page.hpp \
  /home/rsk/projects/db/dbms/include/storage/page/page_header.hpp \
  /usr/include/fcntl.h /usr/include/x86_64-linux-gnu/bits/fcntl.h \

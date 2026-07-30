@@ -9,7 +9,7 @@
 
 namespace megatron {
 
-DiskStorageEngine::DiskStorageEngine() : bpm_(128) {}
+DiskStorageEngine::DiskStorageEngine(size_t pool_size) : bpm_(pool_size) {}
 
 bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::vector<std::string>& columns) {
     if (TableExists(table_name)) throw std::runtime_error("table exists");
@@ -31,6 +31,8 @@ bool DiskStorageEngine::CreateTable(const std::string& table_name, const std::ve
     // remove old files if exists
     std::remove(db_file.c_str());
     std::remove(index_file.c_str());
+
+    bpm_.ClearTablePages(table_name);
 
     uint32_t page_id;
     // create first page using the buffer pool manager

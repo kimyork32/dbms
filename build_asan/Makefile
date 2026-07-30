@@ -192,6 +192,19 @@ megatron_challenge_test/fast:
 .PHONY : megatron_challenge_test/fast
 
 #=============================================================================
+# Target rules for targets named megatron_m1_challenger1_test
+
+# Build rule for target.
+megatron_m1_challenger1_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m1_challenger1_test
+.PHONY : megatron_m1_challenger1_test
+
+# fast build rule for target.
+megatron_m1_challenger1_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/build
+.PHONY : megatron_m1_challenger1_test/fast
+
+#=============================================================================
 # Target rules for targets named megatron_m1_challenger2_test
 
 # Build rule for target.
@@ -231,6 +244,19 @@ megatron_m2_challenger2_test/fast:
 .PHONY : megatron_m2_challenger2_test/fast
 
 #=============================================================================
+# Target rules for targets named megatron_m2_rem_challenger1_test
+
+# Build rule for target.
+megatron_m2_rem_challenger1_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m2_rem_challenger1_test
+.PHONY : megatron_m2_rem_challenger1_test
+
+# fast build rule for target.
+megatron_m2_rem_challenger1_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/build
+.PHONY : megatron_m2_rem_challenger1_test/fast
+
+#=============================================================================
 # Target rules for targets named megatron_m3_test
 
 # Build rule for target.
@@ -268,6 +294,45 @@ megatron_m3_challenger2_test: cmake_check_build_system
 megatron_m3_challenger2_test/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/build
 .PHONY : megatron_m3_challenger2_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m2_m4_challenger1_test
+
+# Build rule for target.
+megatron_m2_m4_challenger1_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m2_m4_challenger1_test
+.PHONY : megatron_m2_m4_challenger1_test
+
+# fast build rule for target.
+megatron_m2_m4_challenger1_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/build
+.PHONY : megatron_m2_m4_challenger1_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_m2_m4_challenger2_test
+
+# Build rule for target.
+megatron_m2_m4_challenger2_test: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_m2_m4_challenger2_test
+.PHONY : megatron_m2_m4_challenger2_test
+
+# fast build rule for target.
+megatron_m2_m4_challenger2_test/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/build
+.PHONY : megatron_m2_m4_challenger2_test/fast
+
+#=============================================================================
+# Target rules for targets named megatron_operator_aware_benchmark
+
+# Build rule for target.
+megatron_operator_aware_benchmark: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 megatron_operator_aware_benchmark
+.PHONY : megatron_operator_aware_benchmark
+
+# fast build rule for target.
+megatron_operator_aware_benchmark/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/build
+.PHONY : megatron_operator_aware_benchmark/fast
 
 src/benchmarks/benchmark_main.o: src/benchmarks/benchmark_main.cpp.o
 .PHONY : src/benchmarks/benchmark_main.o
@@ -365,6 +430,30 @@ src/benchmarks/execution_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_execution_test.dir/build.make CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.s
 .PHONY : src/benchmarks/execution_test.cpp.s
 
+src/benchmarks/m1_challenger1_test.o: src/benchmarks/m1_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m1_challenger1_test.o
+
+# target to build an object file
+src/benchmarks/m1_challenger1_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/src/benchmarks/m1_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m1_challenger1_test.cpp.o
+
+src/benchmarks/m1_challenger1_test.i: src/benchmarks/m1_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m1_challenger1_test.i
+
+# target to preprocess a source file
+src/benchmarks/m1_challenger1_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/src/benchmarks/m1_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m1_challenger1_test.cpp.i
+
+src/benchmarks/m1_challenger1_test.s: src/benchmarks/m1_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m1_challenger1_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m1_challenger1_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/src/benchmarks/m1_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m1_challenger1_test.cpp.s
+
 src/benchmarks/m1_challenger2_test.o: src/benchmarks/m1_challenger2_test.cpp.o
 .PHONY : src/benchmarks/m1_challenger2_test.o
 
@@ -437,6 +526,78 @@ src/benchmarks/m2_challenger2_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/src/benchmarks/m2_challenger2_test.cpp.s
 .PHONY : src/benchmarks/m2_challenger2_test.cpp.s
 
+src/benchmarks/m2_m4_challenger1_test.o: src/benchmarks/m2_m4_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_m4_challenger1_test.o
+
+# target to build an object file
+src/benchmarks/m2_m4_challenger1_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/src/benchmarks/m2_m4_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_m4_challenger1_test.cpp.o
+
+src/benchmarks/m2_m4_challenger1_test.i: src/benchmarks/m2_m4_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_m4_challenger1_test.i
+
+# target to preprocess a source file
+src/benchmarks/m2_m4_challenger1_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/src/benchmarks/m2_m4_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_m4_challenger1_test.cpp.i
+
+src/benchmarks/m2_m4_challenger1_test.s: src/benchmarks/m2_m4_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_m4_challenger1_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m2_m4_challenger1_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/src/benchmarks/m2_m4_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_m4_challenger1_test.cpp.s
+
+src/benchmarks/m2_m4_challenger2_test.o: src/benchmarks/m2_m4_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m2_m4_challenger2_test.o
+
+# target to build an object file
+src/benchmarks/m2_m4_challenger2_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/src/benchmarks/m2_m4_challenger2_test.cpp.o
+.PHONY : src/benchmarks/m2_m4_challenger2_test.cpp.o
+
+src/benchmarks/m2_m4_challenger2_test.i: src/benchmarks/m2_m4_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m2_m4_challenger2_test.i
+
+# target to preprocess a source file
+src/benchmarks/m2_m4_challenger2_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/src/benchmarks/m2_m4_challenger2_test.cpp.i
+.PHONY : src/benchmarks/m2_m4_challenger2_test.cpp.i
+
+src/benchmarks/m2_m4_challenger2_test.s: src/benchmarks/m2_m4_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m2_m4_challenger2_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m2_m4_challenger2_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/src/benchmarks/m2_m4_challenger2_test.cpp.s
+.PHONY : src/benchmarks/m2_m4_challenger2_test.cpp.s
+
+src/benchmarks/m2_rem_challenger1_test.o: src/benchmarks/m2_rem_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_rem_challenger1_test.o
+
+# target to build an object file
+src/benchmarks/m2_rem_challenger1_test.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/src/benchmarks/m2_rem_challenger1_test.cpp.o
+.PHONY : src/benchmarks/m2_rem_challenger1_test.cpp.o
+
+src/benchmarks/m2_rem_challenger1_test.i: src/benchmarks/m2_rem_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_rem_challenger1_test.i
+
+# target to preprocess a source file
+src/benchmarks/m2_rem_challenger1_test.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/src/benchmarks/m2_rem_challenger1_test.cpp.i
+.PHONY : src/benchmarks/m2_rem_challenger1_test.cpp.i
+
+src/benchmarks/m2_rem_challenger1_test.s: src/benchmarks/m2_rem_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_rem_challenger1_test.s
+
+# target to generate assembly for a file
+src/benchmarks/m2_rem_challenger1_test.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/src/benchmarks/m2_rem_challenger1_test.cpp.s
+.PHONY : src/benchmarks/m2_rem_challenger1_test.cpp.s
+
 src/benchmarks/m3_binder_optimizer_test.o: src/benchmarks/m3_binder_optimizer_test.cpp.o
 .PHONY : src/benchmarks/m3_binder_optimizer_test.o
 
@@ -484,6 +645,30 @@ src/benchmarks/m3_challenger2_test.s: src/benchmarks/m3_challenger2_test.cpp.s
 src/benchmarks/m3_challenger2_test.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/src/benchmarks/m3_challenger2_test.cpp.s
 .PHONY : src/benchmarks/m3_challenger2_test.cpp.s
+
+src/benchmarks/operator_aware_benchmark.o: src/benchmarks/operator_aware_benchmark.cpp.o
+.PHONY : src/benchmarks/operator_aware_benchmark.o
+
+# target to build an object file
+src/benchmarks/operator_aware_benchmark.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/src/benchmarks/operator_aware_benchmark.cpp.o
+.PHONY : src/benchmarks/operator_aware_benchmark.cpp.o
+
+src/benchmarks/operator_aware_benchmark.i: src/benchmarks/operator_aware_benchmark.cpp.i
+.PHONY : src/benchmarks/operator_aware_benchmark.i
+
+# target to preprocess a source file
+src/benchmarks/operator_aware_benchmark.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/src/benchmarks/operator_aware_benchmark.cpp.i
+.PHONY : src/benchmarks/operator_aware_benchmark.cpp.i
+
+src/benchmarks/operator_aware_benchmark.s: src/benchmarks/operator_aware_benchmark.cpp.s
+.PHONY : src/benchmarks/operator_aware_benchmark.s
+
+# target to generate assembly for a file
+src/benchmarks/operator_aware_benchmark.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/src/benchmarks/operator_aware_benchmark.cpp.s
+.PHONY : src/benchmarks/operator_aware_benchmark.cpp.s
 
 src/benchmarks/performance_tests.o: src/benchmarks/performance_tests.cpp.o
 .PHONY : src/benchmarks/performance_tests.o
@@ -980,11 +1165,16 @@ help:
 	@echo "... megatron_challenge_test"
 	@echo "... megatron_core"
 	@echo "... megatron_execution_test"
+	@echo "... megatron_m1_challenger1_test"
 	@echo "... megatron_m1_challenger2_test"
 	@echo "... megatron_m2_challenger1_test"
 	@echo "... megatron_m2_challenger2_test"
+	@echo "... megatron_m2_m4_challenger1_test"
+	@echo "... megatron_m2_m4_challenger2_test"
+	@echo "... megatron_m2_rem_challenger1_test"
 	@echo "... megatron_m3_challenger2_test"
 	@echo "... megatron_m3_test"
+	@echo "... megatron_operator_aware_benchmark"
 	@echo "... src/benchmarks/benchmark_main.o"
 	@echo "... src/benchmarks/benchmark_main.i"
 	@echo "... src/benchmarks/benchmark_main.s"
@@ -997,6 +1187,9 @@ help:
 	@echo "... src/benchmarks/execution_test.o"
 	@echo "... src/benchmarks/execution_test.i"
 	@echo "... src/benchmarks/execution_test.s"
+	@echo "... src/benchmarks/m1_challenger1_test.o"
+	@echo "... src/benchmarks/m1_challenger1_test.i"
+	@echo "... src/benchmarks/m1_challenger1_test.s"
 	@echo "... src/benchmarks/m1_challenger2_test.o"
 	@echo "... src/benchmarks/m1_challenger2_test.i"
 	@echo "... src/benchmarks/m1_challenger2_test.s"
@@ -1006,12 +1199,24 @@ help:
 	@echo "... src/benchmarks/m2_challenger2_test.o"
 	@echo "... src/benchmarks/m2_challenger2_test.i"
 	@echo "... src/benchmarks/m2_challenger2_test.s"
+	@echo "... src/benchmarks/m2_m4_challenger1_test.o"
+	@echo "... src/benchmarks/m2_m4_challenger1_test.i"
+	@echo "... src/benchmarks/m2_m4_challenger1_test.s"
+	@echo "... src/benchmarks/m2_m4_challenger2_test.o"
+	@echo "... src/benchmarks/m2_m4_challenger2_test.i"
+	@echo "... src/benchmarks/m2_m4_challenger2_test.s"
+	@echo "... src/benchmarks/m2_rem_challenger1_test.o"
+	@echo "... src/benchmarks/m2_rem_challenger1_test.i"
+	@echo "... src/benchmarks/m2_rem_challenger1_test.s"
 	@echo "... src/benchmarks/m3_binder_optimizer_test.o"
 	@echo "... src/benchmarks/m3_binder_optimizer_test.i"
 	@echo "... src/benchmarks/m3_binder_optimizer_test.s"
 	@echo "... src/benchmarks/m3_challenger2_test.o"
 	@echo "... src/benchmarks/m3_challenger2_test.i"
 	@echo "... src/benchmarks/m3_challenger2_test.s"
+	@echo "... src/benchmarks/operator_aware_benchmark.o"
+	@echo "... src/benchmarks/operator_aware_benchmark.i"
+	@echo "... src/benchmarks/operator_aware_benchmark.s"
 	@echo "... src/benchmarks/performance_tests.o"
 	@echo "... src/benchmarks/performance_tests.i"
 	@echo "... src/benchmarks/performance_tests.s"

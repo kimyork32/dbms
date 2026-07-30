@@ -165,11 +165,11 @@ void TestTwoTableHashJoinHints() {
 
     const AbstractPlanNode* build_side = hj_node->GetChildAt(0);
     ASSERT_TRUE(build_side != nullptr, "Build side child exists");
-    ASSERT_EQ(static_cast<int>(build_side->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Build side receives DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(build_side->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "Build side receives KEEP_HOT");
 
     const AbstractPlanNode* probe_side = hj_node->GetChildAt(1);
     ASSERT_TRUE(probe_side != nullptr, "Probe side child exists");
-    ASSERT_EQ(static_cast<int>(probe_side->GetBufferHint()), static_cast<int>(BufferHint::DEFAULT), "Probe side receives DEFAULT");
+    ASSERT_EQ(static_cast<int>(probe_side->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Probe side receives DISCARD_QUICKLY");
 }
 
 // 3. 3-Table Join (Nested HashJoin): Left subtree receives DISCARD_QUICKLY
@@ -234,16 +234,16 @@ void TestThreeTableMultiJoinHints() {
 
     const AbstractPlanNode* inner_hj = outer_hj->GetChildAt(0);
     ASSERT_EQ(static_cast<int>(inner_hj->GetType()), static_cast<int>(PlanType::HashJoin), "Inner join is HashJoin");
-    ASSERT_EQ(static_cast<int>(inner_hj->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Inner HashJoin is DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(inner_hj->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "Inner HashJoin is KEEP_HOT");
 
     const AbstractPlanNode* users_scan = inner_hj->GetChildAt(0);
-    ASSERT_EQ(static_cast<int>(users_scan->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Users scan in build subtree is DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(users_scan->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "Users scan in build subtree is KEEP_HOT");
 
     const AbstractPlanNode* orders_scan = inner_hj->GetChildAt(1);
-    ASSERT_EQ(static_cast<int>(orders_scan->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Orders scan in build subtree is DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(orders_scan->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "Orders scan in build subtree is KEEP_HOT");
 
     const AbstractPlanNode* items_scan = outer_hj->GetChildAt(1);
-    ASSERT_EQ(static_cast<int>(items_scan->GetBufferHint()), static_cast<int>(BufferHint::DEFAULT), "Items scan on probe side is DEFAULT");
+    ASSERT_EQ(static_cast<int>(items_scan->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "Items scan on probe side is DISCARD_QUICKLY");
 }
 
 // 4. Complex Query: Join + Where + Aggregation + Projection
@@ -256,6 +256,7 @@ void TestComplexQueryWithAggAndWhere() {
     catalog.CreateTable("users", users_schema);
 
     Schema orders_schema;
+    orders_schema.AddColumn("id", TypeId::INTEGER);
     orders_schema.AddColumn("user_id", TypeId::INTEGER);
     orders_schema.AddColumn("amount", TypeId::INTEGER);
     catalog.CreateTable("orders", orders_schema);
@@ -263,6 +264,7 @@ void TestComplexQueryWithAggAndWhere() {
     Binder binder(catalog);
     Optimizer optimizer(catalog);
 
+    // SELECT users.name, COUNT(*) FROM users JOIN orders ON users.id = orders.user_id WHERE orders.amount > 50 GROUP BY users.name
     SelectStatement stmt;
     stmt.from_table = std::make_unique<JoinTableRef>(
         std::make_unique<BaseTableRef>("users"),
@@ -274,17 +276,17 @@ void TestComplexQueryWithAggAndWhere() {
             std::make_unique<ColumnRefExpression>("orders", "user_id")
         )
     );
+
     stmt.select_list.push_back(std::make_unique<ColumnRefExpression>("users", "name"));
-    stmt.select_list.push_back(std::make_unique<AggregateExpression>(
-        "SUM",
-        std::make_unique<ColumnRefExpression>("orders", "amount")
-    ));
-    stmt.group_by.push_back(std::make_unique<ColumnRefExpression>("users", "name"));
+    stmt.select_list.push_back(std::make_unique<AggregateExpression>("COUNT", nullptr, true));
+
     stmt.where_clause = std::make_unique<BinaryOpExpression>(
         ">",
         std::make_unique<ColumnRefExpression>("orders", "amount"),
-        std::make_unique<LiteralExpression>("100", "INTEGER")
+        std::make_unique<LiteralExpression>("50", "INTEGER")
     );
+
+    stmt.group_by.push_back(std::make_unique<ColumnRefExpression>("users", "name"));
 
     auto bound_stmt = binder.BindSelect(stmt);
     auto plan = optimizer.Optimize(*bound_stmt);
@@ -309,10 +311,10 @@ void TestComplexQueryWithAggAndWhere() {
     ASSERT_EQ(static_cast<int>(hj_node->GetBufferHint()), static_cast<int>(BufferHint::DEFAULT), "HashJoin is DEFAULT");
 
     const AbstractPlanNode* left_scan = hj_node->GetChildAt(0);
-    ASSERT_EQ(static_cast<int>(left_scan->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "HashJoin left scan is DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(left_scan->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "HashJoin left scan is KEEP_HOT");
 
     const AbstractPlanNode* right_scan = hj_node->GetChildAt(1);
-    ASSERT_EQ(static_cast<int>(right_scan->GetBufferHint()), static_cast<int>(BufferHint::DEFAULT), "HashJoin right scan is DEFAULT");
+    ASSERT_EQ(static_cast<int>(right_scan->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "HashJoin right scan is DISCARD_QUICKLY");
 }
 
 // 5. Nested Loop Join (Non-equi join): Outer receives DISCARD_QUICKLY, Inner receives KEEP_HOT

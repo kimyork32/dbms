@@ -1,1 +1,1 @@
-/usr/bin/c++ -fsanitize=address,undefined -g -Wl,--dependency-file=CMakeFiles/megatron_execution_test.dir/link.d CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.o -o megatron_execution_test  libmegatron_core.a
+/usr/bin/c++ -fsanitize=address -g -g -Wl,--dependency-file=CMakeFiles/megatron_execution_test.dir/link.d CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.o -o megatron_execution_test  libmegatron_core.a

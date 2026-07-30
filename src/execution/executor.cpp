@@ -35,48 +35,99 @@ void SeqScanExecutor::SetTuples(std::vector<Tuple> tuples, std::vector<RID> rids
 
 void SeqScanExecutor::Init() {
     cursor_ = 0;
+
+    if (bpm_ != nullptr) {
+        // Fix #1 — streaming mode: do NOT batch-load pages.
+        // We keep pages pinned during iteration so the BPM's hint logic
+        // (KEEP_HOT / DISCARD_QUICKLY) actually gets to act on them.
+        if (stream_current_page_ != nullptr) {
+            // Unpin any page that was left pinned by a previous scan.
+            bpm_->UnpinPage(table_name_, stream_page_id_, false);
+            stream_current_page_ = nullptr;
+        }
+        streaming_mode_    = true;
+        stream_num_pages_  = bpm_->GetNumPages(table_name_);
+        stream_page_id_    = 0;
+        stream_slot_id_    = 0;
+        tuples_.clear();
+        rids_.clear();
+        return;
+    }
+
+    streaming_mode_ = false;
     if (tuples_.empty()) {
         BufferHint hint = GetBufferHint();
         if (storage_ != nullptr) {
             tuples_ = storage_->FullScan(table_name_, hint);
-        } else if (bpm_ != nullptr) {
-            tuples_.clear();
-            rids_.clear();
-            uint32_t num_pages = bpm_->GetNumPages(table_name_);
-            const Schema& schema = schema_.columns.empty() ? (meta_ ? meta_->schema : schema_) : schema_;
-            for (uint32_t p_id = 0; p_id < num_pages; ++p_id) {
-                SlottedPage* page = bpm_->FetchPage(table_name_, p_id, hint);
-                if (!page) continue;
-                for (uint16_t i = 0; i < page->GetHeader()->num_slots; ++i) {
-                    uint16_t tuple_size;
-                    const char* tuple_data = page->ReadTuple(i, tuple_size);
-                    if (tuple_data != nullptr) {
-                        Tuple out_tuple;
-                        for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
-                            const auto& col = schema.columns[col_idx];
-                            if (col.type == TypeId::INTEGER) {
-                                int32_t val;
-                                std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
-                                out_tuple.push_back(std::to_string(val));
-                            } else if (col.is_variable) {
-                                uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
-                                uint16_t offset, length;
-                                std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
-                                std::memcpy(&length, tuple_data + dir_pos + 2, sizeof(uint16_t));
-                                out_tuple.push_back(std::string(tuple_data + offset, length));
-                            }
-                        }
-                        tuples_.push_back(out_tuple);
-                        rids_.push_back(RID(p_id, i));
-                    }
-                }
-                bpm_->UnpinPage(table_name_, p_id, false);
-            }
         }
     }
 }
 
 bool SeqScanExecutor::Next(Tuple* tuple, RID* rid) {
+    // Fix #1 — streaming BPM path: iterate page-by-page, keeping each page
+    // pinned while we consume its slots, then unpin before moving on.
+    if (streaming_mode_ && bpm_ != nullptr) {
+        BufferHint hint = GetBufferHint();
+        const Schema& schema = schema_.columns.empty() ? (meta_ ? meta_->schema : schema_) : schema_;
+
+        while (stream_page_id_ < stream_num_pages_) {
+            // Fetch the current page if not already pinned.
+            if (stream_current_page_ == nullptr) {
+                stream_current_page_ = bpm_->FetchPage(table_name_, stream_page_id_, hint);
+                stream_slot_id_ = 0;
+                if (stream_current_page_ == nullptr) {
+                    ++stream_page_id_;
+                    continue;
+                }
+            }
+
+            uint16_t num_slots = stream_current_page_->GetHeader()->num_slots;
+            while (stream_slot_id_ < num_slots) {
+                uint16_t tuple_size;
+                const char* tuple_data = stream_current_page_->ReadTuple(stream_slot_id_, tuple_size);
+                uint16_t current_slot = stream_slot_id_;
+                ++stream_slot_id_;
+
+                if (tuple_data == nullptr) continue;
+
+                if (tuple != nullptr) {
+                    tuple->clear();
+                    for (size_t col_idx = 0; col_idx < schema.columns.size(); ++col_idx) {
+                        const auto& col = schema.columns[col_idx];
+                        if (col.type == TypeId::INTEGER) {
+                            int32_t val;
+                            std::memcpy(&val, tuple_data + col.fixed_offset, sizeof(int32_t));
+                            tuple->push_back(std::to_string(val));
+                        } else if (col.is_variable) {
+                            uint16_t dir_pos = schema.GetVariableDirectoryOffset() + (col.var_index * 4);
+                            uint16_t offset, length;
+                            std::memcpy(&offset, tuple_data + dir_pos, sizeof(uint16_t));
+                            std::memcpy(&length, tuple_data + dir_pos + 2, sizeof(uint16_t));
+                            tuple->push_back(std::string(tuple_data + offset, length));
+                        }
+                    }
+                }
+                if (rid != nullptr) {
+                    *rid = RID(stream_page_id_, current_slot);
+                }
+                return true;
+            }
+
+            // All slots in this page consumed — unpin and move to next page.
+            bpm_->UnpinPage(table_name_, stream_page_id_, false);
+            stream_current_page_ = nullptr;
+            ++stream_page_id_;
+        }
+
+        // Reached end of table; ensure no dangling pin.
+        if (stream_current_page_ != nullptr) {
+            bpm_->UnpinPage(table_name_, stream_page_id_, false);
+            stream_current_page_ = nullptr;
+        }
+        return false;
+    }
+
+    // Original in-memory path.
     if (cursor_ >= tuples_.size()) {
         return false;
     }
@@ -254,21 +305,25 @@ const std::string& IndexScanExecutor::GetSearchKey() const {
 HashJoinExecutor::HashJoinExecutor(std::unique_ptr<AbstractExecutor> left_child,
                                    std::unique_ptr<AbstractExecutor> right_child,
                                    size_t left_key_idx,
-                                   size_t right_key_idx)
+                                   size_t right_key_idx,
+                                   GlobalBufferPoolManager* bpm)
     : AbstractExecutor(nullptr),
       left_child_(std::move(left_child)),
       right_child_(std::move(right_child)),
       left_key_idx_(left_key_idx),
-      right_key_idx_(right_key_idx) {
+      right_key_idx_(right_key_idx),
+      bpm_(bpm) {
     BuildOutputSchema();
 }
 
 HashJoinExecutor::HashJoinExecutor(const HashJoinPlanNode* plan,
                                    std::unique_ptr<AbstractExecutor> left_child,
-                                   std::unique_ptr<AbstractExecutor> right_child)
+                                   std::unique_ptr<AbstractExecutor> right_child,
+                                   GlobalBufferPoolManager* bpm)
     : AbstractExecutor(plan),
       left_child_(std::move(left_child)),
-      right_child_(std::move(right_child)) {
+      right_child_(std::move(right_child)),
+      bpm_(bpm) {
     if (plan) {
         left_key_idx_ = plan->GetLeftKeyIdx();
         right_key_idx_ = plan->GetRightKeyIdx();
@@ -309,8 +364,9 @@ void HashJoinExecutor::Init() {
         return;
     }
 
-    BufferHint left_hint = left_child_->GetBufferHint();
-    (void)left_hint;
+    // Fix #3: use the hint from the plan node (don't discard it).
+    // With Fix #1's streaming SeqScan, the BPM now sees each individual
+    // FetchPage call, so KEEP_HOT on the build side actually raises heat.
     Tuple left_tuple;
     RID left_rid;
     while (left_child_->Next(&left_tuple, &left_rid)) {
@@ -319,8 +375,6 @@ void HashJoinExecutor::Init() {
         }
     }
 
-    BufferHint right_hint = right_child_->GetBufferHint();
-    (void)right_hint;
     Tuple right_tuple;
     RID right_rid;
     while (right_child_->Next(&right_tuple, &right_rid)) {
@@ -361,6 +415,95 @@ AbstractExecutor* HashJoinExecutor::GetLeftChild() const {
 }
 
 AbstractExecutor* HashJoinExecutor::GetRightChild() const {
+    return right_child_.get();
+}
+
+// ================= NestedLoopJoinExecutor =================
+
+NestedLoopJoinExecutor::NestedLoopJoinExecutor(const NestedLoopJoinPlanNode* plan,
+                                               std::unique_ptr<AbstractExecutor> left_child,
+                                               std::unique_ptr<AbstractExecutor> right_child)
+    : AbstractExecutor(plan),
+      left_child_(std::move(left_child)),
+      right_child_(std::move(right_child)) {
+    if (plan) {
+        predicate_ = plan->GetPredicate();
+        output_schema_ = plan->GetOutputSchema();
+    } else {
+        BuildOutputSchema();
+    }
+}
+
+NestedLoopJoinExecutor::NestedLoopJoinExecutor(std::unique_ptr<AbstractExecutor> left_child,
+                                               std::unique_ptr<AbstractExecutor> right_child,
+                                               NestedLoopJoinPlanNode::JoinPredicateFn predicate)
+    : AbstractExecutor(nullptr),
+      left_child_(std::move(left_child)),
+      right_child_(std::move(right_child)),
+      predicate_(std::move(predicate)) {
+    BuildOutputSchema();
+}
+
+void NestedLoopJoinExecutor::BuildOutputSchema() {
+    output_schema_.columns.clear();
+    if (left_child_) {
+        for (const auto& col : left_child_->GetOutputSchema().columns) {
+            output_schema_.columns.push_back(col);
+        }
+    }
+    if (right_child_) {
+        for (const auto& col : right_child_->GetOutputSchema().columns) {
+            output_schema_.columns.push_back(col);
+        }
+    }
+}
+
+void NestedLoopJoinExecutor::Init() {
+    if (left_child_) {
+        left_child_->Init();
+    }
+    has_outer_ = left_child_ ? left_child_->Next(&outer_tuple_, &outer_rid_) : false;
+    if (right_child_) {
+        right_child_->Init();
+    }
+}
+
+bool NestedLoopJoinExecutor::Next(Tuple* tuple, RID* rid) {
+    while (has_outer_) {
+        Tuple inner_tuple;
+        RID inner_rid;
+        while (right_child_ && right_child_->Next(&inner_tuple, &inner_rid)) {
+            if (!predicate_ || predicate_(outer_tuple_, inner_tuple)) {
+                if (tuple != nullptr) {
+                    tuple->clear();
+                    tuple->reserve(outer_tuple_.size() + inner_tuple.size());
+                    tuple->insert(tuple->end(), outer_tuple_.begin(), outer_tuple_.end());
+                    tuple->insert(tuple->end(), inner_tuple.begin(), inner_tuple.end());
+                }
+                if (rid != nullptr) {
+                    *rid = outer_rid_;
+                }
+                return true;
+            }
+        }
+        // Inner stream exhausted, advance outer child
+        has_outer_ = left_child_ ? left_child_->Next(&outer_tuple_, &outer_rid_) : false;
+        if (has_outer_ && right_child_) {
+            right_child_->Init();
+        }
+    }
+    return false;
+}
+
+const Schema& NestedLoopJoinExecutor::GetOutputSchema() const {
+    return output_schema_;
+}
+
+AbstractExecutor* NestedLoopJoinExecutor::GetLeftChild() const {
+    return left_child_.get();
+}
+
+AbstractExecutor* NestedLoopJoinExecutor::GetRightChild() const {
     return right_child_.get();
 }
 

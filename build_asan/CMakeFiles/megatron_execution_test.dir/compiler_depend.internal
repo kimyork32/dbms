@@ -23,6 +23,7 @@ CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.o
  /usr/include/assert.h
  /usr/include/c++/15/algorithm
  /usr/include/c++/15/array
+ /usr/include/c++/15/atomic
  /usr/include/c++/15/backward/auto_ptr.h
  /usr/include/c++/15/backward/binders.h
  /usr/include/c++/15/bit
@@ -286,7 +287,6 @@ megatron_execution_test
  /usr/lib/gcc/x86_64-linux-gnu/15/libgcc.a
  /usr/lib/gcc/x86_64-linux-gnu/15/libgcc_s.so
  /usr/lib/gcc/x86_64-linux-gnu/15/libstdc++.so
- /usr/lib/gcc/x86_64-linux-gnu/15/libubsan.so
  /usr/lib/x86_64-linux-gnu/libc.so.6
  /usr/lib/x86_64-linux-gnu/libc_nonshared.a
  /usr/lib/x86_64-linux-gnu/libm.so.6

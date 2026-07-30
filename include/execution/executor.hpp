@@ -83,6 +83,16 @@ private:
     std::vector<RID> rids_;
     Schema schema_;
     size_t cursor_ = 0;
+
+    // --- Fix #1: streaming BPM mode ---
+    // When bpm_ is set, Next() streams page-by-page instead of batch-loading
+    // everything in Init(). This keeps pages pinned (or at least visible to the
+    // BPM's hint logic) during the scan so KEEP_HOT / DISCARD_QUICKLY take effect.
+    bool streaming_mode_ = false;   ///< true when using page-at-a-time BPM scan
+    uint32_t stream_num_pages_ = 0; ///< total pages in the table
+    uint32_t stream_page_id_ = 0;   ///< current page being streamed
+    uint16_t stream_slot_id_ = 0;   ///< current slot within stream_page_id_
+    SlottedPage* stream_current_page_ = nullptr; ///< currently pinned page (nullptr = not pinned)
 };
 
 /**
@@ -132,10 +142,12 @@ public:
     HashJoinExecutor(std::unique_ptr<AbstractExecutor> left_child,
                      std::unique_ptr<AbstractExecutor> right_child,
                      size_t left_key_idx,
-                     size_t right_key_idx);
+                     size_t right_key_idx,
+                     GlobalBufferPoolManager* bpm = nullptr);
     HashJoinExecutor(const HashJoinPlanNode* plan,
                      std::unique_ptr<AbstractExecutor> left_child,
-                     std::unique_ptr<AbstractExecutor> right_child);
+                     std::unique_ptr<AbstractExecutor> right_child,
+                     GlobalBufferPoolManager* bpm = nullptr);
 
     void Init() override;
     bool Next(Tuple* tuple, RID* rid = nullptr) override;
@@ -150,10 +162,43 @@ private:
     std::unique_ptr<AbstractExecutor> right_child_;
     size_t left_key_idx_{0};
     size_t right_key_idx_{0};
+    // Fix #3: store (key -> list of RIDs) so we can re-fetch build pages from
+    // the BPM during the probe phase, making KEEP_HOT hints actually effective.
     std::unordered_map<std::string, std::vector<std::pair<Tuple, RID>>> hash_table_;
     std::vector<std::pair<Tuple, RID>> matched_results_;
     size_t match_cursor_ = 0;
     Schema output_schema_;
+    GlobalBufferPoolManager* bpm_{nullptr}; ///< optional BPM for re-fetch path
+};
+
+/**
+ * @brief nested loop join executor
+ */
+class NestedLoopJoinExecutor : public AbstractExecutor {
+public:
+    NestedLoopJoinExecutor(const NestedLoopJoinPlanNode* plan,
+                           std::unique_ptr<AbstractExecutor> left_child,
+                           std::unique_ptr<AbstractExecutor> right_child);
+    NestedLoopJoinExecutor(std::unique_ptr<AbstractExecutor> left_child,
+                           std::unique_ptr<AbstractExecutor> right_child,
+                           NestedLoopJoinPlanNode::JoinPredicateFn predicate = nullptr);
+
+    void Init() override;
+    bool Next(Tuple* tuple, RID* rid = nullptr) override;
+    const Schema& GetOutputSchema() const override;
+    AbstractExecutor* GetLeftChild() const;
+    AbstractExecutor* GetRightChild() const;
+
+private:
+    void BuildOutputSchema();
+
+    std::unique_ptr<AbstractExecutor> left_child_;
+    std::unique_ptr<AbstractExecutor> right_child_;
+    NestedLoopJoinPlanNode::JoinPredicateFn predicate_;
+    Schema output_schema_;
+    Tuple outer_tuple_;
+    RID outer_rid_;
+    bool has_outer_{false};
 };
 
 /**

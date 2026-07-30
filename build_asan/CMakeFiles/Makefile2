@@ -68,12 +68,17 @@ all: CMakeFiles/megatron.dir/all
 all: CMakeFiles/megatron_benchmark.dir/all
 all: CMakeFiles/megatron_execution_test.dir/all
 all: CMakeFiles/megatron_challenge_test.dir/all
+all: CMakeFiles/megatron_m1_challenger1_test.dir/all
 all: CMakeFiles/megatron_m1_challenger2_test.dir/all
 all: CMakeFiles/megatron_m2_challenger1_test.dir/all
 all: CMakeFiles/megatron_m2_challenger2_test.dir/all
+all: CMakeFiles/megatron_m2_rem_challenger1_test.dir/all
 all: CMakeFiles/megatron_m3_test.dir/all
 all: CMakeFiles/megatron_binder_stress_test.dir/all
 all: CMakeFiles/megatron_m3_challenger2_test.dir/all
+all: CMakeFiles/megatron_m2_m4_challenger1_test.dir/all
+all: CMakeFiles/megatron_m2_m4_challenger2_test.dir/all
+all: CMakeFiles/megatron_operator_aware_benchmark.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
@@ -82,12 +87,17 @@ codegen: CMakeFiles/megatron.dir/codegen
 codegen: CMakeFiles/megatron_benchmark.dir/codegen
 codegen: CMakeFiles/megatron_execution_test.dir/codegen
 codegen: CMakeFiles/megatron_challenge_test.dir/codegen
+codegen: CMakeFiles/megatron_m1_challenger1_test.dir/codegen
 codegen: CMakeFiles/megatron_m1_challenger2_test.dir/codegen
 codegen: CMakeFiles/megatron_m2_challenger1_test.dir/codegen
 codegen: CMakeFiles/megatron_m2_challenger2_test.dir/codegen
+codegen: CMakeFiles/megatron_m2_rem_challenger1_test.dir/codegen
 codegen: CMakeFiles/megatron_m3_test.dir/codegen
 codegen: CMakeFiles/megatron_binder_stress_test.dir/codegen
 codegen: CMakeFiles/megatron_m3_challenger2_test.dir/codegen
+codegen: CMakeFiles/megatron_m2_m4_challenger1_test.dir/codegen
+codegen: CMakeFiles/megatron_m2_m4_challenger2_test.dir/codegen
+codegen: CMakeFiles/megatron_operator_aware_benchmark.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -100,12 +110,17 @@ clean: CMakeFiles/megatron.dir/clean
 clean: CMakeFiles/megatron_benchmark.dir/clean
 clean: CMakeFiles/megatron_execution_test.dir/clean
 clean: CMakeFiles/megatron_challenge_test.dir/clean
+clean: CMakeFiles/megatron_m1_challenger1_test.dir/clean
 clean: CMakeFiles/megatron_m1_challenger2_test.dir/clean
 clean: CMakeFiles/megatron_m2_challenger1_test.dir/clean
 clean: CMakeFiles/megatron_m2_challenger2_test.dir/clean
+clean: CMakeFiles/megatron_m2_rem_challenger1_test.dir/clean
 clean: CMakeFiles/megatron_m3_test.dir/clean
 clean: CMakeFiles/megatron_binder_stress_test.dir/clean
 clean: CMakeFiles/megatron_m3_challenger2_test.dir/clean
+clean: CMakeFiles/megatron_m2_m4_challenger1_test.dir/clean
+clean: CMakeFiles/megatron_m2_m4_challenger2_test.dir/clean
+clean: CMakeFiles/megatron_operator_aware_benchmark.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -269,13 +284,45 @@ CMakeFiles/megatron_challenge_test.dir/clean:
 .PHONY : CMakeFiles/megatron_challenge_test.dir/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/megatron_m1_challenger1_test.dir
+
+# All Build rule for target.
+CMakeFiles/megatron_m1_challenger1_test.dir/all: CMakeFiles/megatron_core.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=31,32 "Built target megatron_m1_challenger1_test"
+.PHONY : CMakeFiles/megatron_m1_challenger1_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/megatron_m1_challenger1_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 22
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/megatron_m1_challenger1_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 0
+.PHONY : CMakeFiles/megatron_m1_challenger1_test.dir/rule
+
+# Convenience name for target.
+megatron_m1_challenger1_test: CMakeFiles/megatron_m1_challenger1_test.dir/rule
+.PHONY : megatron_m1_challenger1_test
+
+# codegen rule for target.
+CMakeFiles/megatron_m1_challenger1_test.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=31,32 "Finished codegen for target megatron_m1_challenger1_test"
+.PHONY : CMakeFiles/megatron_m1_challenger1_test.dir/codegen
+
+# clean rule for target.
+CMakeFiles/megatron_m1_challenger1_test.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger1_test.dir/build.make CMakeFiles/megatron_m1_challenger1_test.dir/clean
+.PHONY : CMakeFiles/megatron_m1_challenger1_test.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/megatron_m1_challenger2_test.dir
 
 # All Build rule for target.
 CMakeFiles/megatron_m1_challenger2_test.dir/all: CMakeFiles/megatron_core.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=31,32 "Built target megatron_m1_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=33,34 "Built target megatron_m1_challenger2_test"
 .PHONY : CMakeFiles/megatron_m1_challenger2_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -292,7 +339,7 @@ megatron_m1_challenger2_test: CMakeFiles/megatron_m1_challenger2_test.dir/rule
 # codegen rule for target.
 CMakeFiles/megatron_m1_challenger2_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m1_challenger2_test.dir/build.make CMakeFiles/megatron_m1_challenger2_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=31,32 "Finished codegen for target megatron_m1_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=33,34 "Finished codegen for target megatron_m1_challenger2_test"
 .PHONY : CMakeFiles/megatron_m1_challenger2_test.dir/codegen
 
 # clean rule for target.
@@ -307,7 +354,7 @@ CMakeFiles/megatron_m1_challenger2_test.dir/clean:
 CMakeFiles/megatron_m2_challenger1_test.dir/all: CMakeFiles/megatron_core.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=33,34 "Built target megatron_m2_challenger1_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=35,36 "Built target megatron_m2_challenger1_test"
 .PHONY : CMakeFiles/megatron_m2_challenger1_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -324,7 +371,7 @@ megatron_m2_challenger1_test: CMakeFiles/megatron_m2_challenger1_test.dir/rule
 # codegen rule for target.
 CMakeFiles/megatron_m2_challenger1_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger1_test.dir/build.make CMakeFiles/megatron_m2_challenger1_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=33,34 "Finished codegen for target megatron_m2_challenger1_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=35,36 "Finished codegen for target megatron_m2_challenger1_test"
 .PHONY : CMakeFiles/megatron_m2_challenger1_test.dir/codegen
 
 # clean rule for target.
@@ -339,7 +386,7 @@ CMakeFiles/megatron_m2_challenger1_test.dir/clean:
 CMakeFiles/megatron_m2_challenger2_test.dir/all: CMakeFiles/megatron_core.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=35,36 "Built target megatron_m2_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=37,38 "Built target megatron_m2_challenger2_test"
 .PHONY : CMakeFiles/megatron_m2_challenger2_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -356,7 +403,7 @@ megatron_m2_challenger2_test: CMakeFiles/megatron_m2_challenger2_test.dir/rule
 # codegen rule for target.
 CMakeFiles/megatron_m2_challenger2_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_challenger2_test.dir/build.make CMakeFiles/megatron_m2_challenger2_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=35,36 "Finished codegen for target megatron_m2_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=37,38 "Finished codegen for target megatron_m2_challenger2_test"
 .PHONY : CMakeFiles/megatron_m2_challenger2_test.dir/codegen
 
 # clean rule for target.
@@ -365,13 +412,45 @@ CMakeFiles/megatron_m2_challenger2_test.dir/clean:
 .PHONY : CMakeFiles/megatron_m2_challenger2_test.dir/clean
 
 #=============================================================================
+# Target rules for target CMakeFiles/megatron_m2_rem_challenger1_test.dir
+
+# All Build rule for target.
+CMakeFiles/megatron_m2_rem_challenger1_test.dir/all: CMakeFiles/megatron_core.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=43,44 "Built target megatron_m2_rem_challenger1_test"
+.PHONY : CMakeFiles/megatron_m2_rem_challenger1_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/megatron_m2_rem_challenger1_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 22
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/megatron_m2_rem_challenger1_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 0
+.PHONY : CMakeFiles/megatron_m2_rem_challenger1_test.dir/rule
+
+# Convenience name for target.
+megatron_m2_rem_challenger1_test: CMakeFiles/megatron_m2_rem_challenger1_test.dir/rule
+.PHONY : megatron_m2_rem_challenger1_test
+
+# codegen rule for target.
+CMakeFiles/megatron_m2_rem_challenger1_test.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=43,44 "Finished codegen for target megatron_m2_rem_challenger1_test"
+.PHONY : CMakeFiles/megatron_m2_rem_challenger1_test.dir/codegen
+
+# clean rule for target.
+CMakeFiles/megatron_m2_rem_challenger1_test.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_rem_challenger1_test.dir/build.make CMakeFiles/megatron_m2_rem_challenger1_test.dir/clean
+.PHONY : CMakeFiles/megatron_m2_rem_challenger1_test.dir/clean
+
+#=============================================================================
 # Target rules for target CMakeFiles/megatron_m3_test.dir
 
 # All Build rule for target.
 CMakeFiles/megatron_m3_test.dir/all: CMakeFiles/megatron_core.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=39,40 "Built target megatron_m3_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=47,48 "Built target megatron_m3_test"
 .PHONY : CMakeFiles/megatron_m3_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -388,7 +467,7 @@ megatron_m3_test: CMakeFiles/megatron_m3_test.dir/rule
 # codegen rule for target.
 CMakeFiles/megatron_m3_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_test.dir/build.make CMakeFiles/megatron_m3_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=39,40 "Finished codegen for target megatron_m3_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=47,48 "Finished codegen for target megatron_m3_test"
 .PHONY : CMakeFiles/megatron_m3_test.dir/codegen
 
 # clean rule for target.
@@ -435,7 +514,7 @@ CMakeFiles/megatron_binder_stress_test.dir/clean:
 CMakeFiles/megatron_m3_challenger2_test.dir/all: CMakeFiles/megatron_core.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=37,38 "Built target megatron_m3_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=45,46 "Built target megatron_m3_challenger2_test"
 .PHONY : CMakeFiles/megatron_m3_challenger2_test.dir/all
 
 # Build rule for subdir invocation for target.
@@ -452,13 +531,109 @@ megatron_m3_challenger2_test: CMakeFiles/megatron_m3_challenger2_test.dir/rule
 # codegen rule for target.
 CMakeFiles/megatron_m3_challenger2_test.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=37,38 "Finished codegen for target megatron_m3_challenger2_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=45,46 "Finished codegen for target megatron_m3_challenger2_test"
 .PHONY : CMakeFiles/megatron_m3_challenger2_test.dir/codegen
 
 # clean rule for target.
 CMakeFiles/megatron_m3_challenger2_test.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m3_challenger2_test.dir/build.make CMakeFiles/megatron_m3_challenger2_test.dir/clean
 .PHONY : CMakeFiles/megatron_m3_challenger2_test.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/megatron_m2_m4_challenger1_test.dir
+
+# All Build rule for target.
+CMakeFiles/megatron_m2_m4_challenger1_test.dir/all: CMakeFiles/megatron_core.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=39,40 "Built target megatron_m2_m4_challenger1_test"
+.PHONY : CMakeFiles/megatron_m2_m4_challenger1_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/megatron_m2_m4_challenger1_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 22
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/megatron_m2_m4_challenger1_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 0
+.PHONY : CMakeFiles/megatron_m2_m4_challenger1_test.dir/rule
+
+# Convenience name for target.
+megatron_m2_m4_challenger1_test: CMakeFiles/megatron_m2_m4_challenger1_test.dir/rule
+.PHONY : megatron_m2_m4_challenger1_test
+
+# codegen rule for target.
+CMakeFiles/megatron_m2_m4_challenger1_test.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=39,40 "Finished codegen for target megatron_m2_m4_challenger1_test"
+.PHONY : CMakeFiles/megatron_m2_m4_challenger1_test.dir/codegen
+
+# clean rule for target.
+CMakeFiles/megatron_m2_m4_challenger1_test.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger1_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger1_test.dir/clean
+.PHONY : CMakeFiles/megatron_m2_m4_challenger1_test.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/megatron_m2_m4_challenger2_test.dir
+
+# All Build rule for target.
+CMakeFiles/megatron_m2_m4_challenger2_test.dir/all: CMakeFiles/megatron_core.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=41,42 "Built target megatron_m2_m4_challenger2_test"
+.PHONY : CMakeFiles/megatron_m2_m4_challenger2_test.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/megatron_m2_m4_challenger2_test.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 22
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/megatron_m2_m4_challenger2_test.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 0
+.PHONY : CMakeFiles/megatron_m2_m4_challenger2_test.dir/rule
+
+# Convenience name for target.
+megatron_m2_m4_challenger2_test: CMakeFiles/megatron_m2_m4_challenger2_test.dir/rule
+.PHONY : megatron_m2_m4_challenger2_test
+
+# codegen rule for target.
+CMakeFiles/megatron_m2_m4_challenger2_test.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=41,42 "Finished codegen for target megatron_m2_m4_challenger2_test"
+.PHONY : CMakeFiles/megatron_m2_m4_challenger2_test.dir/codegen
+
+# clean rule for target.
+CMakeFiles/megatron_m2_m4_challenger2_test.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_m2_m4_challenger2_test.dir/build.make CMakeFiles/megatron_m2_m4_challenger2_test.dir/clean
+.PHONY : CMakeFiles/megatron_m2_m4_challenger2_test.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/megatron_operator_aware_benchmark.dir
+
+# All Build rule for target.
+CMakeFiles/megatron_operator_aware_benchmark.dir/all: CMakeFiles/megatron_core.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=49,50 "Built target megatron_operator_aware_benchmark"
+.PHONY : CMakeFiles/megatron_operator_aware_benchmark.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/megatron_operator_aware_benchmark.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 22
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/megatron_operator_aware_benchmark.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rsk/projects/db/dbms/build_asan/CMakeFiles 0
+.PHONY : CMakeFiles/megatron_operator_aware_benchmark.dir/rule
+
+# Convenience name for target.
+megatron_operator_aware_benchmark: CMakeFiles/megatron_operator_aware_benchmark.dir/rule
+.PHONY : megatron_operator_aware_benchmark
+
+# codegen rule for target.
+CMakeFiles/megatron_operator_aware_benchmark.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/rsk/projects/db/dbms/build_asan/CMakeFiles --progress-num=49,50 "Finished codegen for target megatron_operator_aware_benchmark"
+.PHONY : CMakeFiles/megatron_operator_aware_benchmark.dir/codegen
+
+# clean rule for target.
+CMakeFiles/megatron_operator_aware_benchmark.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/megatron_operator_aware_benchmark.dir/build.make CMakeFiles/megatron_operator_aware_benchmark.dir/clean
+.PHONY : CMakeFiles/megatron_operator_aware_benchmark.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

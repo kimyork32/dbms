@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <cstdint>
+#include <atomic>
 #include "storage/page/slotted_page.hpp"
 
 namespace megatron {
@@ -15,6 +16,21 @@ enum class BufferHint {
     DEFAULT = 0,
     KEEP_HOT,
     DISCARD_QUICKLY
+};
+
+/**
+ * @brief Page replacement policy for the buffer pool manager
+ *
+ * CLOCK_SWEEP   – Classic Clock-Sweep independent of operator hints (LRU baseline).
+ * TWO_Q         – Two-queue algorithm (Johnson & Shasha, VLDB 1994):
+ *                 A1 probation queue (FIFO) + Am protected queue (Clock).
+ * OPERATOR_AWARE– Hint-driven 4-tier Clock-Sweep (this work):
+ *                 eviction order: DISCARD_QUICKLY → DEFAULT → KEEP_HOT.
+ */
+enum class ReplacementPolicy {
+    CLOCK_SWEEP = 0,
+    TWO_Q,
+    OPERATOR_AWARE
 };
 
 /**
@@ -35,7 +51,12 @@ public:
      * @brief constructs a global buffer pool manager
      * @param pool_size maximum number of frames in the pool
      */
-    GlobalBufferPoolManager(size_t pool_size);
+    /**
+     * @param pool_size  maximum number of frames in the pool
+     * @param policy     replacement policy (default = OPERATOR_AWARE)
+     */
+    GlobalBufferPoolManager(size_t pool_size,
+                            ReplacementPolicy policy = ReplacementPolicy::OPERATOR_AWARE);
 
     /**
      * @brief destructs the global buffer pool manager and flushes pages
@@ -81,6 +102,47 @@ public:
      */
     uint32_t GetNumPages(const std::string& table_name);
 
+    /**
+     * @brief resets metrics counters (page_hits, page_misses, disk_writes) to 0
+     */
+    void ResetMetrics();
+
+    /**
+     * @brief clears page metadata and frame mappings for a table
+     * @param table_name name of the table
+     */
+    void ClearTablePages(const std::string& table_name);
+
+    /**
+     * @brief clears all global page allocation metadata
+     */
+    static void ResetGlobalState();
+
+    /**
+     * @brief returns total page hits
+     */
+    size_t GetPageHits() const;
+
+    /**
+     * @brief returns total page misses
+     */
+    size_t GetPageMisses() const;
+
+    /**
+     * @brief returns total disk writes
+     */
+    size_t GetDiskWrites() const;
+
+    /**
+     * @brief returns total disk I/O count (page_misses + disk_writes)
+     */
+    size_t GetDiskIOCount() const;
+
+    /**
+     * @brief returns miss ratio: page_misses / (page_hits + page_misses)
+     */
+    double GetMissRatio() const;
+
 private:
     struct Frame {
         SlottedPage page;
@@ -91,15 +153,29 @@ private:
         bool ref_bit = false;
         bool is_valid = false;
         BufferHint hint = BufferHint::DEFAULT;
+        /// For TWO_Q: true = Am (protected, clock-evicted), false = A1 (probation, FIFO-evicted)
+        bool in_am = false;
     };
 
     size_t pool_size_;
+    ReplacementPolicy policy_;
     std::vector<Frame> frames_;
     std::unordered_map<std::pair<std::string, uint32_t>, size_t, BPM_PageKeyHash> page_table_;
     size_t clock_hand_ = 0;
     std::mutex latch_;
 
+    std::atomic<size_t> page_hits_{0};
+    std::atomic<size_t> page_misses_{0};
+    std::atomic<size_t> disk_writes_{0};
+
+    /// Dispatch to policy-specific victim finder
     bool FindVictim(size_t* frame_id);
+    /// Classic 2-pass Clock-Sweep ignoring hints
+    bool FindVictimClockSweep(size_t* frame_id);
+    /// 2Q: evict from A1 (FIFO) first, then Am (Clock)
+    bool FindVictimTwoQ(size_t* frame_id);
+    /// Operator-Aware 4-tier: DISCARD_QUICKLY → DEFAULT → KEEP_HOT
+    bool FindVictimOperatorAware(size_t* frame_id);
     void ReadPageFromDisk(const std::string& table_name, uint32_t page_id, SlottedPage& page);
     void WritePageToDisk(const std::string& table_name, uint32_t page_id, const SlottedPage& page);
 };

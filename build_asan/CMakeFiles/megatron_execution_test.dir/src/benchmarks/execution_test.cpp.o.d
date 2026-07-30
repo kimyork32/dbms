@@ -208,7 +208,7 @@ CMakeFiles/megatron_execution_test.dir/src/benchmarks/execution_test.cpp.o: \
  /usr/include/c++/15/ratio /usr/include/c++/15/limits \
  /usr/include/c++/15/ctime /usr/include/c++/15/bits/parse_numbers.h \
  /usr/include/c++/15/bits/std_mutex.h \
- /usr/include/c++/15/bits/unique_lock.h \
+ /usr/include/c++/15/bits/unique_lock.h /usr/include/c++/15/atomic \
  /home/rsk/projects/db/dbms/include/storage/page/slotted_page.hpp \
  /home/rsk/projects/db/dbms/include/storage/page/page_header.hpp \
  /home/rsk/projects/db/dbms/include/execution/plan_node.hpp \
