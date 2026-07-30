@@ -14,7 +14,7 @@ namespace megatron {
  */
 class DiskStorageEngine : public StorageEngineInterface {
 public:
-    DiskStorageEngine();
+    explicit DiskStorageEngine(size_t pool_size = 128);
 
     /**
      * @brief creates a new table

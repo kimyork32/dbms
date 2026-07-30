@@ -164,7 +164,7 @@ void TestOptimizerAndBufferHintInjection() {
     ASSERT_EQ(static_cast<int>(scan_node->GetType()), static_cast<int>(PlanType::IndexScan), "Index scan rule created IndexScanPlanNode");
     ASSERT_EQ(static_cast<int>(scan_node->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "IndexScanPlanNode carries BufferHint::KEEP_HOT");
 
-    // 4b. HashJoin build side BufferHint::DISCARD_QUICKLY
+    // 4b. HashJoin build side BufferHint::KEEP_HOT
     SelectStatement join_stmt;
     auto join_ref = std::make_unique<JoinTableRef>(
         std::make_unique<BaseTableRef>("users"),
@@ -191,7 +191,7 @@ void TestOptimizerAndBufferHintInjection() {
     ASSERT_EQ(static_cast<int>(hj_node->GetType()), static_cast<int>(PlanType::HashJoin), "HashJoinPlanNode constructed");
     const AbstractPlanNode* left_child = hj_node->GetChildAt(0);
     ASSERT_TRUE(left_child != nullptr, "HashJoin build side (left child) exists");
-    ASSERT_EQ(static_cast<int>(left_child->GetBufferHint()), static_cast<int>(BufferHint::DISCARD_QUICKLY), "HashJoin build side carries BufferHint::DISCARD_QUICKLY");
+    ASSERT_EQ(static_cast<int>(left_child->GetBufferHint()), static_cast<int>(BufferHint::KEEP_HOT), "HashJoin build side carries BufferHint::KEEP_HOT");
     ASSERT_EQ(static_cast<int>(hj_node->GetBufferHint()), static_cast<int>(BufferHint::DEFAULT), "HashJoin root carries BufferHint::DEFAULT");
 }
 

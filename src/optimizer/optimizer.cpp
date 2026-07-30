@@ -295,7 +295,7 @@ void Optimizer::InjectBufferHints(std::shared_ptr<execution::AbstractPlanNode>& 
                     if (IsCatalogTable(scan_node->GetTableName())) {
                         plan->SetBufferHint(BufferHint::KEEP_HOT);
                     } else {
-                        plan->SetBufferHint(BufferHint::DEFAULT);
+                        plan->SetBufferHint(BufferHint::DISCARD_QUICKLY);
                     }
                 }
             }
@@ -305,12 +305,21 @@ void Optimizer::InjectBufferHints(std::shared_ptr<execution::AbstractPlanNode>& 
         case execution::PlanType::HashJoin: {
             auto join_node = std::dynamic_pointer_cast<execution::HashJoinPlanNode>(plan);
             if (join_node) {
-                // Build side (left child) gets DISCARD_QUICKLY
-                auto left_child = std::const_pointer_cast<execution::AbstractPlanNode>(
-                    plan->GetChildren()[0]
-                );
-                if (left_child) {
-                    SetSubtreeHint(left_child, BufferHint::DISCARD_QUICKLY);
+                // Build side (left child) gets KEEP_HOT
+                // Probe side (right child) gets DISCARD_QUICKLY
+                if (plan->GetChildren().size() >= 2) {
+                    auto left_child = std::const_pointer_cast<execution::AbstractPlanNode>(
+                        plan->GetChildren()[0]
+                    );
+                    auto right_child = std::const_pointer_cast<execution::AbstractPlanNode>(
+                        plan->GetChildren()[1]
+                    );
+                    if (left_child) {
+                        SetSubtreeHint(left_child, BufferHint::KEEP_HOT);
+                    }
+                    if (right_child) {
+                        SetSubtreeHint(right_child, BufferHint::DISCARD_QUICKLY);
+                    }
                 }
                 plan->SetBufferHint(BufferHint::DEFAULT);
             }
