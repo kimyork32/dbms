@@ -1,1 +1,0 @@
-/usr/bin/c++ -fsanitize=address -g -g -Wl,--dependency-file=CMakeFiles/megatron_challenge_test.dir/link.d CMakeFiles/megatron_challenge_test.dir/src/benchmarks/challenge_test.cpp.o -o megatron_challenge_test  libmegatron_core.a

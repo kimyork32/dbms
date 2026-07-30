@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/rsk/projects/db/dbms/build_asan/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
